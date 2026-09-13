@@ -5,9 +5,9 @@
 <h1 align="center">Smith IT Company Network Diagnostic Toolkit 🛠️🌐</h1>
 
 <p align="center">
+  <a href="https://github.com/shawonsmith/smith-network-toolkit/actions/workflows/ci.yml"><img src="https://github.com/shawonsmith/smith-network-toolkit/actions/workflows/ci.yml/badge.svg" alt="CI & Automated Test Suite"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.8%2B-blue.svg" alt="Python Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/code%20style-modular-brightgreen.svg" alt="Code Style: Clean">
   <img src="https://img.shields.io/badge/tests-55%20passing-success.svg" alt="Build & Tests">
 </p>
 
@@ -38,6 +38,10 @@ Troubleshooting network issues on end-user machines often leads to guesswork: gu
 - **Quick Network Repair Wizard**: 1-click Windows DNS Cache Flush (`ipconfig /flushdns`), registration, and DHCP renewal.
 - **Privacy Shield**: Built-in `--privacy` masking for screenshots, bug reports, and portfolio sharing.
 - **Export & GUI Options**: Modern standalone responsive HTML dashboard reports (with auto-browser open) and a 19-tool Desktop GUI window (`run_gui.bat`).
+
+<p align="center">
+  <img src="screenshots/gui_preview.png" alt="Desktop GUI Preview" width="800" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+</p>
 
 ---
 
@@ -74,8 +78,8 @@ In IT helpdesk and support environments, junior technicians often execute disjoi
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/smith-it-company-network-toolkit.git
-cd smith-it-company-network-toolkit
+git clone https://github.com/shawonsmith/smith-network-toolkit.git
+cd smith-network-toolkit
 ```
 
 ### 2. Install Dependencies
