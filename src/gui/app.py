@@ -1,4 +1,4 @@
-﻿"""Desktop Graphical User Interface for Smith IT Company Network Diagnostic Toolkit."""
+"""Desktop Graphical User Interface for Smith IT Company Network Diagnostic Toolkit."""
 
 import sys
 import os
@@ -17,6 +17,9 @@ from src.reporting.report_generator import generate_html_report
 from src.diagnostics.dns_benchmark import run_dns_benchmark
 from src.diagnostics.ports import scan_ports
 from src.diagnostics.speedtest import test_download_speed
+from src.diagnostics.lan_scanner import scan_local_network
+from src.diagnostics.wifi_analyzer import analyze_wifi_status
+from src.diagnostics.jitter import run_jitter_stability_test
 
 
 class NetworkToolkitGUI:
@@ -177,6 +180,15 @@ class NetworkToolkitGUI:
         self.btn_ports = ttk.Button(btn_frame, text="🔌 Port Scan", style="Secondary.TButton", command=self._run_port_scan)
         self.btn_ports.pack(side="left", padx=4)
 
+        self.btn_lan = ttk.Button(btn_frame, text="🏠 Scan LAN", style="Secondary.TButton", command=self._run_lan_scan)
+        self.btn_lan.pack(side="left", padx=4)
+
+        self.btn_wifi = ttk.Button(btn_frame, text="📶 Wi-Fi / Link", style="Secondary.TButton", command=self._run_wifi_info)
+        self.btn_wifi.pack(side="left", padx=4)
+
+        self.btn_jitter = ttk.Button(btn_frame, text="🎯 VoIP / Jitter", style="Secondary.TButton", command=self._run_jitter_test)
+        self.btn_jitter.pack(side="left", padx=4)
+
         self.btn_repair = ttk.Button(btn_frame, text="🛠️ Flush DNS", style="Secondary.TButton", command=self._run_repair)
         self.btn_repair.pack(side="right", padx=4)
 
@@ -280,6 +292,53 @@ class NetworkToolkitGUI:
                 msg += f"• Port {r['port']} ({r['service']}): {r['status']} ({r.get('latency_ms') or '-'} ms)\n"
             self.root.after(0, lambda: messagebox.showinfo("Port Connectivity Scan", msg))
             self.root.after(0, lambda: self._set_status("Port scan finished."))
+    def _run_lan_scan(self):
+        self._set_status("Scanning local network devices...")
+        def worker():
+            res = scan_local_network()
+            msg = f"Subnet: {res['subnet']}\nTotal Scanned: {res['total_hosts_scanned']} | Active Devices: {res['active_devices_count']}\n\n"
+            for d in res['devices']:
+                msg += f"• {d['ip']:<15} {d['mac']:<18} {d['role']}\n"
+            self.root.after(0, lambda: messagebox.showinfo("LAN Device Discovery", msg))
+            self.root.after(0, lambda: self._set_status("LAN device scan finished."))
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _run_wifi_info(self):
+        self._set_status("Inspecting wireless adapter and link status...")
+        def worker():
+            res = analyze_wifi_status()
+            msg = f"Interface: {res['interface_name']}\nStatus: {res['state']}\n"
+            if res['is_wifi']:
+                msg += f"SSID: {res['ssid']} (BSSID: {res['bssid']})\n"
+                msg += f"Signal: {res['signal_pct']}% (~{res['rssi_dbm']} dBm)\n"
+                msg += f"Band & Channel: {res['band']} (Ch {res['channel']})\n"
+                msg += f"Protocol: {res['wifi_generation']}\n"
+                msg += f"Security: {res['auth']} / {res['cipher']}\n"
+            elif res.get('rx_rate_mbps'):
+                msg += f"Link Speed: {res['rx_rate_mbps']} Mbps (Wired)\n"
+            if res.get('advice'):
+                msg += "\nAdvice:\n" + "\n".join(f"• {a}" for a in res['advice'])
+            self.root.after(0, lambda: messagebox.showinfo("Wi-Fi & Link Status", msg))
+            self.root.after(0, lambda: self._set_status("Wi-Fi inspection finished."))
+        threading.Thread(target=worker, daemon=True).start()
+
+    def _run_jitter_test(self):
+        self._set_status("Testing VoIP & Gaming Jitter / Stability (20 packets)...")
+        def worker():
+            res = run_jitter_stability_test(target_host="8.8.8.8", packet_count=20)
+            msg = (
+                f"Target: {res['target']}\n"
+                f"Packets: {res['packets_received']}/{res['packets_sent']} ({res['packet_loss_pct']}% Loss)\n"
+                f"Avg Latency: {res['avg_ms']} ms (Min: {res['min_ms']}, Max: {res['max_ms']})\n"
+                f"RFC 3550 Jitter: {res['rfc3550_jitter_ms']} ms\n"
+                f"VoIP MOS Score: {res['mos_score']} / 4.5 [{res['grade']}]\n\n"
+                f"Zoom / Teams: {res['zoom_status']}\n"
+                f"Gaming Rating: {res['gaming_status']}\n"
+            )
+            if res.get('advice'):
+                msg += "\nAdvice:\n" + "\n".join(f"• {a}" for a in res['advice'])
+            self.root.after(0, lambda: messagebox.showinfo("VoIP & Gaming Jitter Test", msg))
+            self.root.after(0, lambda: self._set_status("Jitter test finished."))
         threading.Thread(target=worker, daemon=True).start()
 
     def _run_repair(self):

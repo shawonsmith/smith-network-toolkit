@@ -33,6 +33,9 @@ from src.diagnostics.ports import scan_ports
 from src.diagnostics.traceroute import run_traceroute
 from src.diagnostics.speedtest import test_download_speed
 from src.diagnostics.live_monitor import run_live_monitor
+from src.diagnostics.lan_scanner import scan_local_network
+from src.diagnostics.wifi_analyzer import analyze_wifi_status
+from src.diagnostics.jitter import run_jitter_stability_test
 from src.scoring.health_score import calculate_health_score
 from src.diagnosis.diagnosis_engine import run_diagnosis, extract_all_recommendations
 from src.reporting.report_generator import generate_html_report
@@ -357,6 +360,9 @@ def interactive_menu() -> None:
             console.print("[bold cyan][13][/bold cyan]  Quick Network Repair & DNS Flush Wizard")
             console.print("[bold cyan][14][/bold cyan]  View Diagnostic Logs")
             console.print("[bold cyan][15][/bold cyan]  Run Automated Unit Tests (pytest)")
+            console.print("[bold cyan][16][/bold cyan]  LAN Subnet Device Discovery / IP Scanner")
+            console.print("[bold cyan][17][/bold cyan]  Advanced Wi-Fi Signal & Channel Inspector")
+            console.print("[bold cyan][18][/bold cyan]  VoIP / Video Call (Zoom/Teams) & Gaming Stability Test")
             console.print("[bold red][0][/bold red]   Exit\n")
         else:
             print("\n" + "=" * 55)
@@ -377,10 +383,13 @@ def interactive_menu() -> None:
             print(" [13] Quick Network Repair & DNS Flush Wizard")
             print(" [14] View Diagnostic Logs")
             print(" [15] Run Automated Unit Tests (pytest)")
+            print(" [16] LAN Subnet Device Discovery / IP Scanner")
+            print(" [17] Advanced Wi-Fi Signal & Channel Inspector")
+            print(" [18] VoIP / Video Call (Zoom/Teams) & Gaming Stability Test")
             print(" [0]  Exit\n")
 
         try:
-            choice = input("Enter your choice [0-15]: ").strip()
+            choice = input("Enter your choice [0-18]: ").strip()
         except (KeyboardInterrupt, EOFError):
             print("\nExiting. Goodbye!")
             break
@@ -505,15 +514,62 @@ def interactive_menu() -> None:
             print("-" * 55)
 
         elif choice == "15":
-            print("Running Automated Pytest Suite (34 tests)...")
+            print("Running Automated Pytest Suite...")
             subprocess.run([sys.executable, "-m", "pytest", "-v", "tests/"])
+
+        elif choice == "16":
+            subnet_in = input("Enter subnet CIDR to scan [Press Enter for auto-detect]: ").strip() or None
+            print("\nScanning local network devices (using multi-threaded discovery)...")
+            res = scan_local_network(subnet_cidr=subnet_in)
+            print(f"\nSubnet: {res['subnet']} | Total Hosts Scanned: {res['total_hosts_scanned']} | Active Devices: {res['active_devices_count']}\n")
+            print(f"{'IP Address':<18} {'MAC Address':<20} {'Hostname':<25} {'Role / Status':<25}")
+            print("-" * 88)
+            for d in res["devices"]:
+                print(f"{d['ip']:<18} {d['mac']:<20} {d['hostname'][:24]:<25} {d['role']:<25}")
+
+        elif choice == "17":
+            print("Inspecting wireless adapter, signal health, and RF environment...")
+            res = analyze_wifi_status()
+            print(f"\nInterface:       {res['interface_name']}")
+            print(f"Status:          {res['state']}")
+            if res['is_wifi']:
+                print(f"SSID:            {res['ssid']} (BSSID: {res['bssid']})")
+                print(f"Signal Quality:  {res['signal_pct']}% (~{res['rssi_dbm']} dBm)")
+                print(f"Band & Channel:  {res['band']} (Channel {res['channel']})")
+                print(f"Protocol:        {res['wifi_generation']} ({res['radio_type']})")
+                print(f"Security:        {res['auth']} / {res['cipher']}")
+                rx = f"{res['rx_rate_mbps']} Mbps" if res['rx_rate_mbps'] else "N/A"
+                tx = f"{res['tx_rate_mbps']} Mbps" if res['tx_rate_mbps'] else "N/A"
+                print(f"Link Speeds:     Rx: {rx} | Tx: {tx}")
+            elif res.get('rx_rate_mbps'):
+                print(f"Link Speed:      {res['rx_rate_mbps']} Mbps (Wired)")
+            if res.get('advice'):
+                print("\nOptimization & Diagnostic Advice:")
+                for adv in res['advice']:
+                    print(f"  💡 {adv}")
+
+        elif choice == "18":
+            target = input("Enter target host for jitter test [Default 8.8.8.8]: ").strip() or "8.8.8.8"
+            print(f"\nRunning VoIP & Gaming Jitter / Stability test against {target} (20 packets)...")
+            res = run_jitter_stability_test(target_host=target, packet_count=20)
+            print(f"\nTarget Host:      {res['target']}")
+            print(f"Packets Sent/Rec: {res['packets_sent']} sent, {res['packets_received']} received ({res['packet_loss_pct']}% loss)")
+            print(f"Latency Range:    Min: {res['min_ms']} ms | Avg: {res['avg_ms']} ms | Max: {res['max_ms']} ms | StdDev: {res['std_dev_ms']} ms")
+            print(f"RFC 3550 Jitter:  {res['rfc3550_jitter_ms']} ms")
+            print(f"VoIP MOS Score:   {res['mos_score']} / 4.5  [{res['grade']}]")
+            print(f"Zoom / Teams:     {res['zoom_status']}")
+            print(f"Gaming Rating:    {res['gaming_status']}")
+            if res.get('advice'):
+                print("\nDiagnostic Advice:")
+                for adv in res['advice']:
+                    print(f"  💡 {adv}")
 
         elif choice == "0":
             print("Thank you for using Smith IT Company Network Diagnostic Toolkit. Goodbye!\n")
             break
 
         else:
-            print("Invalid option. Please select a number between 0 and 15.")
+            print("Invalid option. Please select a number between 0 and 18.")
 
         try:
             input("\nPress Enter to return to main menu...")
@@ -540,6 +596,9 @@ def main() -> None:
     parser.add_argument("--monitor", action="store_true", help="Run continuous ping monitor")
     parser.add_argument("--repair", action="store_true", help="Run quick network repair (flush DNS and renew IP)")
     parser.add_argument("--gui", action="store_true", help="Launch Desktop GUI dashboard")
+    parser.add_argument("--lan-scan", "--lan", action="store_true", help="Run high-speed LAN subnet device discovery")
+    parser.add_argument("--wifi-info", "--wifi", action="store_true", help="Inspect Wi-Fi signal, channel, and link speed")
+    parser.add_argument("--jitter", action="store_true", help="Run VoIP and gaming stability / jitter test")
 
     # If user ran `python run.py` without flags, open interactive menu!
     if len(sys.argv) == 1:
@@ -589,6 +648,33 @@ def main() -> None:
         print(f"Fastest: {res['fastest']['name']} ({res['fastest']['avg_ms']} ms)")
         for r in res["results"]:
             print(f"  {r['name']} ({r['ip']}): {r.get('avg_ms')} ms")
+        return
+
+    if args.lan_scan:
+        res = scan_local_network()
+        print(f"Subnet: {res['subnet']} | Hosts Scanned: {res['total_hosts_scanned']} | Active Devices: {res['active_devices_count']}\n")
+        print(f"{'IP Address':<18} {'MAC Address':<20} {'Hostname':<25} {'Role'}")
+        print("-" * 75)
+        for d in res["devices"]:
+            print(f"{d['ip']:<18} {d['mac']:<20} {d['hostname'][:24]:<25} {d['role']}")
+        return
+
+    if args.wifi_info:
+        res = analyze_wifi_status()
+        print(f"Interface: {res['interface_name']} | Status: {res['state']}")
+        if res['is_wifi']:
+            print(f"SSID: {res['ssid']} | Signal: {res['signal_pct']}% (~{res['rssi_dbm']} dBm) | Channel: {res['channel']} ({res['band']})")
+            print(f"Protocol: {res['wifi_generation']} | Security: {res['auth']} / {res['cipher']}")
+        for adv in res.get('advice', []):
+            print(f"  Advice: {adv}")
+        return
+
+    if args.jitter:
+        res = run_jitter_stability_test()
+        print(f"Target: {res['target']} | Avg Latency: {res['avg_ms']} ms | Jitter: {res['rfc3550_jitter_ms']} ms | Loss: {res['packet_loss_pct']}%")
+        print(f"VoIP MOS Score: {res['mos_score']} [{res['grade']}]")
+        print(f"Zoom / Teams:   {res['zoom_status']}")
+        print(f"Gaming Rating:  {res['gaming_status']}")
         return
 
     # Configure logger with privacy setting
