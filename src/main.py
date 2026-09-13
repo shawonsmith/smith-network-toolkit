@@ -235,31 +235,31 @@ def interactive_menu() -> None:
             menu_text.append("SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT\n", style="bold cyan")
             menu_text.append("Main Menu - Select an action below", style="dim white")
             console.print("\n", Panel(menu_text, box=box.ROUNDED, expand=False))
-            console.print("[bold cyan][1][/bold cyan]  Full Diagnostic Scan (সম্পূর্ণ নেটওয়ার্ক স্ক্যান)")
-            console.print("[bold cyan][2][/bold cyan]  Quick Diagnostic Scan (দ্রুত স্ক্যান)")
-            console.print("[bold cyan][3][/bold cyan]  Full Scan + Generate HTML Report (এইচটিএমএল রিপোর্ট তৈরি)")
-            console.print("[bold cyan][4][/bold cyan]  Privacy Mode Scan (আইপি ও ম্যাক অ্যাড্রেস লুকিয়ে স্ক্যান)")
-            console.print("[bold cyan][5][/bold cyan]  DNS Diagnostics Only (শুধু DNS রেজোলিউশন চেক)")
-            console.print("[bold cyan][6][/bold cyan]  Default Gateway Test Only (শুধু রাউটার/গেটওয়ে টেস্ট)")
-            console.print("[bold cyan][7][/bold cyan]  Run Automated Unit Tests (সবগুলো ইউনিট টেস্ট চালানো)")
-            console.print("[bold cyan][8][/bold cyan]  View Diagnostic Logs (সর্বশেষ লগ দেখা)")
-            console.print("[bold red][0][/bold red]  Exit (প্রস্থান)\n")
+            console.print("[bold cyan][1][/bold cyan]  Full Diagnostic Scan")
+            console.print("[bold cyan][2][/bold cyan]  Quick Diagnostic Scan")
+            console.print("[bold cyan][3][/bold cyan]  Full Scan + Generate HTML Report")
+            console.print("[bold cyan][4][/bold cyan]  Privacy Mode Scan (Mask IP & MAC)")
+            console.print("[bold cyan][5][/bold cyan]  DNS Diagnostics Only")
+            console.print("[bold cyan][6][/bold cyan]  Default Gateway Test Only")
+            console.print("[bold cyan][7][/bold cyan]  Run Automated Unit Tests (pytest)")
+            console.print("[bold cyan][8][/bold cyan]  View Diagnostic Logs")
+            console.print("[bold red][0][/bold red]  Exit\n")
         else:
             print("\n" + "=" * 55)
             print("   SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT")
             print("=" * 55)
-            print(" [1] Full Diagnostic Scan (সম্পূর্ণ নেটওয়ার্ক স্ক্যান)")
-            print(" [2] Quick Diagnostic Scan (দ্রুত স্ক্যান)")
-            print(" [3] Full Scan + Generate HTML Report (এইচটিএমএল রিপোর্ট তৈরি)")
-            print(" [4] Privacy Mode Scan (আইপি ও ম্যাক অ্যাড্রেস লুকিয়ে স্ক্যান)")
-            print(" [5] DNS Diagnostics Only (শুধু DNS রেজোলিউশন চেক)")
-            print(" [6] Default Gateway Test Only (শুধু রাউটার/গেটওয়ে টেস্ট)")
-            print(" [7] Run Automated Unit Tests (সবগুলো ইউনিট টেস্ট চালানো)")
-            print(" [8] View Diagnostic Logs (সর্বশেষ লগ দেখা)")
-            print(" [0] Exit (প্রস্থান)\n")
+            print(" [1] Full Diagnostic Scan")
+            print(" [2] Quick Diagnostic Scan")
+            print(" [3] Full Scan + Generate HTML Report")
+            print(" [4] Privacy Mode Scan (Mask IP & MAC)")
+            print(" [5] DNS Diagnostics Only")
+            print(" [6] Default Gateway Test Only")
+            print(" [7] Run Automated Unit Tests (pytest)")
+            print(" [8] View Diagnostic Logs")
+            print(" [0] Exit\n")
 
         try:
-            choice = input("👉 Enter your choice [0-8]: ").strip()
+            choice = input("Enter your choice [0-8]: ").strip()
         except (KeyboardInterrupt, EOFError):
             print("\nExiting. Goodbye!")
             break
@@ -267,17 +267,17 @@ def interactive_menu() -> None:
         print()
 
         if choice == "1":
-            print("⏳ Running Full Diagnostic Scan...")
+            print("Running Full Diagnostic Scan...")
             report = execute_full_scan(quick=False)
             render_output(report)
 
         elif choice == "2":
-            print("⏳ Running Quick Diagnostic Scan...")
+            print("Running Quick Diagnostic Scan...")
             report = execute_full_scan(quick=True)
             render_output(report)
 
         elif choice == "3":
-            print("⏳ Running Full Scan and Generating HTML Report...")
+            print("Running Full Scan and Generating HTML Report...")
             report = execute_full_scan(quick=False)
             render_output(report)
             report_path = generate_html_report(report)
@@ -287,13 +287,13 @@ def interactive_menu() -> None:
                 print(f"\nReport generated successfully: {report_path}")
 
         elif choice == "4":
-            print("⏳ Running Privacy-Masked Scan...")
+            print("Running Privacy-Masked Scan...")
             report = execute_full_scan(quick=True)
             report = mask_scan_report(report)
             render_output(report)
 
         elif choice == "5":
-            print("⏳ Running DNS Resolution Diagnostics...")
+            print("Running DNS Resolution Diagnostics...")
             dns_res = test_dns()
             print(f"\nDNS Status: {dns_res.status} ({dns_res.value})")
             print(f"Message:    {dns_res.message}")
@@ -303,7 +303,7 @@ def interactive_menu() -> None:
                 print(f"  • {d['domain']:<16} : {lat:<10} (IPs: {ips})")
 
         elif choice == "6":
-            print("⏳ Running Gateway Diagnostics...")
+            print("Running Gateway Diagnostics...")
             adapter = detect_adapter_info()
             gw_res = test_gateway(adapter.default_gateway)
             print(f"\nDefault Gateway: {adapter.default_gateway}")
@@ -312,11 +312,11 @@ def interactive_menu() -> None:
             print(f"Message:         {gw_res.message}")
 
         elif choice == "7":
-            print("⏳ Running Automated Pytest Suite (34 tests)...")
+            print("Running Automated Pytest Suite (34 tests)...")
             subprocess.run([sys.executable, "-m", "pytest", "-v", "tests/"])
 
         elif choice == "8":
-            print("📜 Latest Diagnostic Logs:")
+            print("Latest Diagnostic Logs:")
             print("-" * 55)
             if LOG_FILE.exists():
                 lines = LOG_FILE.read_text(encoding="utf-8", errors="ignore").splitlines()
@@ -328,11 +328,11 @@ def interactive_menu() -> None:
             print("-" * 55)
 
         elif choice == "0":
-            print("Thank you for using Smith IT Company Network Diagnostic Toolkit. Goodbye! 👋\n")
+            print("Thank you for using Smith IT Company Network Diagnostic Toolkit. Goodbye!\n")
             break
 
         else:
-            print("❌ Invalid option. Please select a number between 0 and 8.")
+            print("Invalid option. Please select a number between 0 and 8.")
 
         try:
             input("\nPress Enter to return to main menu...")
