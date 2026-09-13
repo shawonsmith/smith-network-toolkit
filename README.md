@@ -1,9 +1,15 @@
-# Smith IT Company Network Diagnostic Toolkit 🛠️🌐
+<p align="center">
+  <img src="assets/logo.png" alt="Smith Network Diagnostic Toolkit Logo" width="160" height="160" style="border-radius: 20px;">
+</p>
 
-[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Code Style: Clean](https://img.shields.io/badge/code%20style-modular-brightgreen.svg)]()
-[![Build & Tests](https://img.shields.io/badge/tests-55%20passing-success.svg)]()
+<h1 align="center">Smith IT Company Network Diagnostic Toolkit 🛠️🌐</h1>
+
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.8%2B-blue.svg" alt="Python Version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
+  <img src="https://img.shields.io/badge/code%20style-modular-brightgreen.svg" alt="Code Style: Clean">
+  <img src="https://img.shields.io/badge/tests-55%20passing-success.svg" alt="Build & Tests">
+</p>
 
 A lightweight, modular, and cross-platform enterprise network troubleshooting toolkit engineered for IT support students, junior systems engineers, helpdesk technicians, and small office administrators. It systematically diagnoses connectivity issues, assigns an empirical 0–100 health score, diagnoses root causes (e.g., DHCP APIPA failure, DNS resolver failure, ISP/upstream outages, local router issues), features an autonomous real-time self-healing watchdog daemon, and delivers interactive terminal dashboards, modern HTML reports, and a Desktop GUI.
 

@@ -38,6 +38,19 @@ class NetworkToolkitGUI:
         self.root.minsize(980, 640)
         self.root.configure(bg="#0f172a")
 
+        # Set Window / Taskbar Icon
+        try:
+            icon_ico = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "assets", "icon.ico")
+            if os.path.exists(icon_ico):
+                self.root.iconbitmap(icon_ico)
+            else:
+                icon_png = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "assets", "icon.png")
+                if os.path.exists(icon_png):
+                    img = tk.PhotoImage(file=icon_png)
+                    self.root.iconphoto(True, img)
+        except Exception:
+            pass
+
         self.last_report = None
         self.guardian: Optional[NetworkGuardian] = None
         self._setup_styles()
