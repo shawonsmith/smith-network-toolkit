@@ -449,7 +449,7 @@ def interactive_menu() -> None:
                 ms_val = f"{r.get('avg_ms')} ms" if r.get('avg_ms') is not None else "TIMEOUT"
                 print(f"{r['name']:<25} {r['ip']:<16} {ms_val:<15} {r['success_rate']:<10}")
             if res.get("recommendation"):
-                print(f"\n💡 Recommendation: {res['recommendation']}")
+                print(f"\n* Recommendation: {res['recommendation']}")
 
         elif choice == "8":
             target = input("Enter target host to scan [Default 1.1.1.1]: ").strip() or "1.1.1.1"
@@ -546,7 +546,7 @@ def interactive_menu() -> None:
             if res.get('advice'):
                 print("\nOptimization & Diagnostic Advice:")
                 for adv in res['advice']:
-                    print(f"  💡 {adv}")
+                    print(f"  * {adv}")
 
         elif choice == "18":
             target = input("Enter target host for jitter test [Default 8.8.8.8]: ").strip() or "8.8.8.8"
@@ -562,7 +562,7 @@ def interactive_menu() -> None:
             if res.get('advice'):
                 print("\nDiagnostic Advice:")
                 for adv in res['advice']:
-                    print(f"  💡 {adv}")
+                    print(f"  * {adv}")
 
         elif choice == "0":
             print("Thank you for using Smith IT Company Network Diagnostic Toolkit. Goodbye!\n")
