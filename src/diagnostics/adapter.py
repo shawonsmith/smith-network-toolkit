@@ -1,4 +1,4 @@
-"""Network adapter and local host configuration detection."""
+﻿"""Network adapter and local host configuration detection."""
 
 import os
 import platform
@@ -16,6 +16,31 @@ from src.utils.platform_utils import (
     is_apipa_ip
 )
 from src.utils.logger import log_event
+
+
+def get_windows_wifi_info() -> Dict[str, str]:
+    """Check for active Wi-Fi connection info on Windows."""
+    info: Dict[str, str] = {}
+    if platform.system() != "Windows":
+        return info
+    try:
+        out = subprocess.check_output("netsh wlan show interfaces", text=True, errors="ignore", shell=True)
+        for line in out.splitlines():
+            if ":" in line:
+                key, val = line.split(":", 1)
+                key = key.strip().lower()
+                val = val.strip()
+                if "ssid" in key and "bssid" not in key and val:
+                    info["ssid"] = val
+                elif "signal" in key and val:
+                    info["signal"] = val
+                elif "radio type" in key and val:
+                    info["radio"] = val
+                elif "channel" in key and val:
+                    info["channel"] = val
+    except Exception:
+        pass
+    return info
 
 
 def get_windows_ipconfig_data() -> Dict[str, Dict[str, Any]]:
@@ -36,7 +61,6 @@ def get_windows_ipconfig_data() -> Dict[str, Dict[str, Any]]:
         if not line.startswith(" ") and ":" in line:
             # Header line like 'Ethernet adapter Ethernet:'
             current_adapter = line.split(":")[0].strip()
-            # Clean header name
             clean_name = current_adapter
             for prefix in ["Ethernet adapter ", "Wireless LAN adapter ", "Adapter "]:
                 if clean_name.startswith(prefix):
@@ -90,17 +114,14 @@ def get_unix_gateway() -> Optional[str]:
                 if "gateway:" in line:
                     return line.split(":", 1)[1].strip()
         else:
-            # Linux: check /proc/net/route or ip route
             if os.path.exists("/proc/net/route"):
                 with open("/proc/net/route", "r") as f:
                     for line in f.readlines()[1:]:
                         fields = line.strip().split()
                         if len(fields) >= 3 and fields[1] == "00000000":
                             gw_hex = fields[2]
-                            # Convert hex to IP
                             octets = [str(int(gw_hex[i:i+2], 16)) for i in (6, 4, 2, 0)]
                             return ".".join(octets)
-            # Fallback to ip route
             cmd = ["ip", "route", "show", "default"]
             out = subprocess.check_output(cmd, text=True, errors="ignore")
             m = re.search(r"default via ([\d\.]+)", out)
@@ -143,13 +164,15 @@ def detect_adapter_info() -> AdapterInfo:
         default_gateway="Unknown",
         dns_servers=[],
         is_apipa=False,
-        is_connected=False
+        is_connected=False,
+        wifi_info={}
     )
 
     system = platform.system()
     win_data = get_windows_ipconfig_data() if system == "Windows" else {}
+    wifi_data = get_windows_wifi_info() if system == "Windows" else {}
+    info.wifi_info = wifi_data
 
-    # Query all network interfaces via psutil
     net_addrs = psutil.net_if_addrs()
     net_stats = psutil.net_if_stats()
 
@@ -158,7 +181,6 @@ def detect_adapter_info() -> AdapterInfo:
     candidate_mask: Optional[str] = None
     candidate_mac: Optional[str] = None
 
-    # Priority 1: An interface that is UP, not loopback, has valid non-APIPA IPv4
     for iface_name, addrs in net_addrs.items():
         if "loopback" in iface_name.lower():
             continue
@@ -171,28 +193,24 @@ def detect_adapter_info() -> AdapterInfo:
         current_mac = None
 
         for addr in addrs:
-            # IPv4 address
             if addr.family == socket.AF_INET:
                 current_ipv4 = addr.address
                 current_mask = addr.netmask
-            # MAC Address: AF_LINK on Unix or -1 on Windows
             elif addr.family == psutil.AF_LINK or addr.family == -1:
                 current_mac = addr.address
 
         if current_ipv4 and is_valid_ipv4(current_ipv4):
-            # Check if this interface has a default gateway in win_data
             has_gateway = False
             if iface_name in win_data and win_data[iface_name].get("gateway"):
                 has_gateway = True
 
-            # If it's UP and not APIPA, choose it
             if is_up and not is_apipa_ip(current_ipv4):
                 best_candidate = iface_name
                 candidate_ipv4 = current_ipv4
                 candidate_mask = current_mask
                 candidate_mac = current_mac
                 if has_gateway:
-                    break  # Found best active adapter with gateway
+                    break
             elif not best_candidate:
                 best_candidate = iface_name
                 candidate_ipv4 = current_ipv4
@@ -207,12 +225,9 @@ def detect_adapter_info() -> AdapterInfo:
         info.is_connected = True
         info.is_apipa = is_apipa_ip(info.ipv4_address)
 
-        # Pull gateway and DNS
         if system == "Windows":
-            # Match with win_data
             data = win_data.get(best_candidate)
             if not data:
-                # Try partial match
                 for name, d in win_data.items():
                     if name in best_candidate or best_candidate in name:
                         data = d

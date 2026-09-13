@@ -5,6 +5,7 @@ import sys
 import json
 import argparse
 import subprocess
+import webbrowser
 from pathlib import Path
 from typing import Optional
 
@@ -47,33 +48,78 @@ except ImportError:
     console = None
 
 
+def play_completion_sound() -> None:
+    """Play subtle notification chime on scan completion (Windows)."""
+    if sys.platform == "win32":
+        try:
+            import winsound
+            winsound.MessageBeep(winsound.MB_ICONASTERISK)
+        except Exception:
+            pass
+
+
+def open_report_in_browser(report_path: str) -> None:
+    """Automatically open generated HTML report in default web browser."""
+    try:
+        uri = Path(report_path).resolve().as_uri()
+        webbrowser.open(uri)
+    except Exception:
+        pass
+
+
 def execute_full_scan(quick: bool = False) -> ScanReport:
-    """Run all diagnostic modules and synthesize a unified ScanReport."""
+    """Run all diagnostic modules with live progress feedback."""
     log_event("Starting full network diagnostic scan...")
 
-    # 1. Adapter Info
-    adapter = detect_adapter_info()
+    if RICH_AVAILABLE and console:
+        with console.status("[bold cyan]Analyzing network stack...[/bold cyan]", spinner="dots") as status:
+            status.update("[bold cyan]Step 1/7: Detecting network adapter & IP configuration...[/bold cyan]")
+            adapter = detect_adapter_info()
 
-    # 2. Gateway Reachability
-    gw_res = test_gateway(adapter.default_gateway, quick=quick)
+            status.update(f"[bold cyan]Step 2/7: Pinging default gateway ({adapter.default_gateway})...[/bold cyan]")
+            gw_res = test_gateway(adapter.default_gateway, quick=quick)
 
-    # 3. Internet Connectivity
-    internet_res = test_internet_connectivity(
-        gateway_reachable=(gw_res.status == "PASS"),
-        quick=quick
-    )
+            status.update("[bold cyan]Step 3/7: Testing multi-stage internet reachability...[/bold cyan]")
+            internet_res = test_internet_connectivity(
+                gateway_reachable=(gw_res.status == "PASS"),
+                quick=quick
+            )
 
-    # 4. DNS Diagnostics (isolated from web requests)
-    dns_res = test_dns(timeout_sec=2.0 if quick else 3.0)
+            status.update("[bold cyan]Step 4/7: Benchmarking DNS resolution speed...[/bold cyan]")
+            dns_res = test_dns(timeout_sec=2.0 if quick else 3.0)
 
-    # 5. Packet Loss
-    loss_res = test_packet_loss(count=5 if quick else 20, quick=quick)
+            status.update("[bold cyan]Step 5/7: Measuring packet loss and link stability...[/bold cyan]")
+            loss_res = test_packet_loss(count=5 if quick else 20, quick=quick)
 
-    # 6. Latency (Dual-tier Gateway & Internet)
-    latency_res = measure_latency(gateway_ip=adapter.default_gateway, quick=quick)
+            status.update("[bold cyan]Step 6/7: Measuring dual-tier round-trip latency...[/bold cyan]")
+            latency_res = measure_latency(gateway_ip=adapter.default_gateway, quick=quick)
 
-    # 7. Public IP (Informational)
-    pub_ip_info = detect_public_ip(timeout_sec=2.0)
+            status.update("[bold cyan]Step 7/7: Checking external public IP...[/bold cyan]")
+            pub_ip_info = detect_public_ip(timeout_sec=2.0)
+    else:
+        print("  -> Step 1/7: Detecting network adapter & IP configuration...")
+        adapter = detect_adapter_info()
+
+        print(f"  -> Step 2/7: Pinging default gateway ({adapter.default_gateway})...")
+        gw_res = test_gateway(adapter.default_gateway, quick=quick)
+
+        print("  -> Step 3/7: Testing multi-stage internet reachability...")
+        internet_res = test_internet_connectivity(
+            gateway_reachable=(gw_res.status == "PASS"),
+            quick=quick
+        )
+
+        print("  -> Step 4/7: Benchmarking DNS resolution speed...")
+        dns_res = test_dns(timeout_sec=2.0 if quick else 3.0)
+
+        print("  -> Step 5/7: Measuring packet loss and link stability...")
+        loss_res = test_packet_loss(count=5 if quick else 20, quick=quick)
+
+        print("  -> Step 6/7: Measuring dual-tier round-trip latency...")
+        latency_res = measure_latency(gateway_ip=adapter.default_gateway, quick=quick)
+
+        print("  -> Step 7/7: Checking external public IP...")
+        pub_ip_info = detect_public_ip(timeout_sec=2.0)
 
     results = [gw_res, internet_res, dns_res, loss_res, latency_res]
 
@@ -95,6 +141,7 @@ def execute_full_scan(quick: bool = False) -> ScanReport:
         is_privacy_masked=False
     )
     log_event(f"Scan complete. Health Score: {health.total_score}/100")
+    play_completion_sound()
     return report
 
 
@@ -127,6 +174,13 @@ def render_rich_terminal(report: ScanReport) -> None:
     info_table.add_row("DNS Servers", dns_display)
     pub_ip = report.public_ip_info.get("ip", "Unavailable")
     info_table.add_row("Public IP", pub_ip)
+
+    # Show Wi-Fi details if active
+    if adapter.wifi_info.get("ssid"):
+        info_table.add_row("Wi-Fi SSID", adapter.wifi_info["ssid"])
+        if adapter.wifi_info.get("signal"):
+            info_table.add_row("Wi-Fi Signal", adapter.wifi_info["signal"])
+
     console.print(info_table)
 
     # Diagnostics Table
@@ -225,6 +279,55 @@ def render_output(report: ScanReport) -> None:
         render_plain_terminal(report)
 
 
+def run_quick_network_repair() -> None:
+    """Execute standard network repair operations: flush DNS and renew IP."""
+    print("\n" + "=" * 55)
+    print("      QUICK NETWORK REPAIR & DNS FLUSH WIZARD")
+    print("=" * 55)
+
+    if sys.platform == "win32":
+        print("\n[1/3] Flushing Windows DNS Resolver Cache...")
+        try:
+            res = subprocess.run(["ipconfig", "/flushdns"], capture_output=True, text=True, check=False)
+            print(res.stdout.strip())
+        except Exception as e:
+            print(f"Error flushing DNS: {e}")
+
+        print("\n[2/3] Registering DNS connections...")
+        try:
+            res = subprocess.run(["ipconfig", "/registerdns"], capture_output=True, text=True, check=False)
+            print(res.stdout.strip() or "DNS registration initiated.")
+        except Exception as e:
+            print(f"Error: {e}")
+
+        try:
+            ans = input("\n[3/3] Do you also want to Release & Renew DHCP IP address? (y/n): ").strip().lower()
+            if ans == "y":
+                print("Releasing IP...")
+                subprocess.run(["ipconfig", "/release"], capture_output=True, text=True, check=False)
+                print("Requesting new IP from DHCP router...")
+                r = subprocess.run(["ipconfig", "/renew"], capture_output=True, text=True, check=False)
+                print(r.stdout.strip())
+                print("DHCP renewal finished.")
+            else:
+                print("Skipping DHCP renewal.")
+        except Exception:
+            pass
+    else:
+        print("Flushing local DNS resolver...")
+        try:
+            subprocess.run(["resolvectl", "flush-caches"], check=False)
+            print("resolvectl cache cleared.")
+        except Exception:
+            try:
+                subprocess.run(["systemd-resolve", "--flush-caches"], check=False)
+                print("systemd-resolve cache cleared.")
+            except Exception as e:
+                print(f"Could not flush DNS automatically on this platform: {e}")
+
+    print("\n✓ Repair tasks completed successfully!")
+
+
 def interactive_menu() -> None:
     """Display interactive numbered menu for guided troubleshooting."""
     setup_logger(privacy=False)
@@ -237,12 +340,13 @@ def interactive_menu() -> None:
             console.print("\n", Panel(menu_text, box=box.ROUNDED, expand=False))
             console.print("[bold cyan][1][/bold cyan]  Full Diagnostic Scan")
             console.print("[bold cyan][2][/bold cyan]  Quick Diagnostic Scan")
-            console.print("[bold cyan][3][/bold cyan]  Full Scan + Generate HTML Report")
+            console.print("[bold cyan][3][/bold cyan]  Full Scan + Generate HTML Report (Auto-Opens in Browser)")
             console.print("[bold cyan][4][/bold cyan]  Privacy Mode Scan (Mask IP & MAC)")
             console.print("[bold cyan][5][/bold cyan]  DNS Diagnostics Only")
             console.print("[bold cyan][6][/bold cyan]  Default Gateway Test Only")
             console.print("[bold cyan][7][/bold cyan]  Run Automated Unit Tests (pytest)")
             console.print("[bold cyan][8][/bold cyan]  View Diagnostic Logs")
+            console.print("[bold cyan][9][/bold cyan]  Quick Network Repair & DNS Flush Wizard")
             console.print("[bold red][0][/bold red]  Exit\n")
         else:
             print("\n" + "=" * 55)
@@ -250,16 +354,17 @@ def interactive_menu() -> None:
             print("=" * 55)
             print(" [1] Full Diagnostic Scan")
             print(" [2] Quick Diagnostic Scan")
-            print(" [3] Full Scan + Generate HTML Report")
+            print(" [3] Full Scan + Generate HTML Report (Auto-Opens in Browser)")
             print(" [4] Privacy Mode Scan (Mask IP & MAC)")
             print(" [5] DNS Diagnostics Only")
             print(" [6] Default Gateway Test Only")
             print(" [7] Run Automated Unit Tests (pytest)")
             print(" [8] View Diagnostic Logs")
+            print(" [9] Quick Network Repair & DNS Flush Wizard")
             print(" [0] Exit\n")
 
         try:
-            choice = input("Enter your choice [0-8]: ").strip()
+            choice = input("Enter your choice [0-9]: ").strip()
         except (KeyboardInterrupt, EOFError):
             print("\nExiting. Goodbye!")
             break
@@ -267,27 +372,24 @@ def interactive_menu() -> None:
         print()
 
         if choice == "1":
-            print("Running Full Diagnostic Scan...")
             report = execute_full_scan(quick=False)
             render_output(report)
 
         elif choice == "2":
-            print("Running Quick Diagnostic Scan...")
             report = execute_full_scan(quick=True)
             render_output(report)
 
         elif choice == "3":
-            print("Running Full Scan and Generating HTML Report...")
             report = execute_full_scan(quick=False)
             render_output(report)
             report_path = generate_html_report(report)
+            open_report_in_browser(report_path)
             if RICH_AVAILABLE:
-                console.print(f"\n[bold green]Report generated successfully:[/bold green] [underline]{report_path}[/underline]")
+                console.print(f"\n[bold green]Report generated and opened in browser:[/bold green] [underline]{report_path}[/underline]")
             else:
-                print(f"\nReport generated successfully: {report_path}")
+                print(f"\nReport generated and opened in browser: {report_path}")
 
         elif choice == "4":
-            print("Running Privacy-Masked Scan...")
             report = execute_full_scan(quick=True)
             report = mask_scan_report(report)
             render_output(report)
@@ -327,12 +429,15 @@ def interactive_menu() -> None:
                 print("No log entries found yet.")
             print("-" * 55)
 
+        elif choice == "9":
+            run_quick_network_repair()
+
         elif choice == "0":
             print("Thank you for using Smith IT Company Network Diagnostic Toolkit. Goodbye!\n")
             break
 
         else:
-            print("Invalid option. Please select a number between 0 and 8.")
+            print("Invalid option. Please select a number between 0 and 9.")
 
         try:
             input("\nPress Enter to return to main menu...")
@@ -347,11 +452,15 @@ def main() -> None:
     parser.add_argument("--menu", action="store_true", help="Launch interactive selection menu")
     parser.add_argument("--quick", action="store_true", help="Perform a rapid diagnostic scan with fewer samples")
     parser.add_argument("--privacy", action="store_true", help="Mask sensitive IP and MAC addresses across CLI, JSON, HTML, and logs")
-    parser.add_argument("--report", action="store_true", help="Generate a modern HTML report in reports/ directory")
+    parser.add_argument("--report", action="store_true", help="Generate a modern HTML report and open in browser")
     parser.add_argument("--output", type=str, default=None, help="Custom output filepath for HTML report")
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON to stdout")
     parser.add_argument("--dns", action="store_true", help="Run DNS diagnostics only")
     parser.add_argument("--gateway", action="store_true", help="Run Gateway diagnostics only")
+    parser.add_argument("--repair", action="store_true", help="Run quick network repair (flush DNS and renew IP)")
+
+    if args := None:
+        pass
 
     # If user ran `python run.py` without flags, open interactive menu!
     if len(sys.argv) == 1:
@@ -362,6 +471,10 @@ def main() -> None:
 
     if args.menu:
         interactive_menu()
+        return
+
+    if args.repair:
+        run_quick_network_repair()
         return
 
     # Configure logger with privacy setting
@@ -408,10 +521,11 @@ def main() -> None:
     # Generate HTML report if requested
     if args.report or args.output:
         report_path = generate_html_report(report, output_path=args.output)
+        open_report_in_browser(report_path)
         if RICH_AVAILABLE:
-            console.print(f"\n[bold green]Report generated successfully:[/bold green] [underline]{report_path}[/underline]")
+            console.print(f"\n[bold green]Report generated and opened in browser:[/bold green] [underline]{report_path}[/underline]")
         else:
-            print(f"\nReport generated successfully: {report_path}")
+            print(f"\nReport generated and opened in browser: {report_path}")
 
 
 if __name__ == "__main__":

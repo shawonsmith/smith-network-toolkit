@@ -1,4 +1,4 @@
-"""Shared data models for Smith IT Company Network Diagnostic Toolkit."""
+﻿"""Shared data models for Smith IT Company Network Diagnostic Toolkit."""
 
 from dataclasses import dataclass, field, asdict
 from typing import Dict, Any, List, Optional
@@ -32,6 +32,7 @@ class AdapterInfo:
     dns_servers: List[str] = field(default_factory=list)
     is_apipa: bool = False
     is_connected: bool = False
+    wifi_info: Dict[str, str] = field(default_factory=dict)
     details: Dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> Dict[str, Any]:
