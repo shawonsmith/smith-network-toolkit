@@ -36,6 +36,7 @@ from src.diagnostics.live_monitor import run_live_monitor
 from src.diagnostics.lan_scanner import scan_local_network
 from src.diagnostics.wifi_analyzer import analyze_wifi_status
 from src.diagnostics.jitter import run_jitter_stability_test
+from src.diagnostics.guardian import run_guardian_cli, NetworkGuardian
 from src.scoring.health_score import calculate_health_score
 from src.diagnosis.diagnosis_engine import run_diagnosis, extract_all_recommendations
 from src.reporting.report_generator import generate_html_report
@@ -363,6 +364,7 @@ def interactive_menu() -> None:
             console.print("[bold cyan][16][/bold cyan]  LAN Subnet Device Discovery / IP Scanner")
             console.print("[bold cyan][17][/bold cyan]  Advanced Wi-Fi Signal & Channel Inspector")
             console.print("[bold cyan][18][/bold cyan]  VoIP / Video Call (Zoom/Teams) & Gaming Stability Test")
+            console.print("[bold green][19][/bold green]  Real-Time Auto-Heal Guardian (Background Self-Healing)")
             console.print("[bold red][0][/bold red]   Exit\n")
         else:
             print("\n" + "=" * 55)
@@ -386,10 +388,11 @@ def interactive_menu() -> None:
             print(" [16] LAN Subnet Device Discovery / IP Scanner")
             print(" [17] Advanced Wi-Fi Signal & Channel Inspector")
             print(" [18] VoIP / Video Call (Zoom/Teams) & Gaming Stability Test")
+            print(" [19] Real-Time Auto-Heal Guardian (Background Self-Healing)")
             print(" [0]  Exit\n")
 
         try:
-            choice = input("Enter your choice [0-18]: ").strip()
+            choice = input("Enter your choice [0-19]: ").strip()
         except (KeyboardInterrupt, EOFError):
             print("\nExiting. Goodbye!")
             break
@@ -564,12 +567,15 @@ def interactive_menu() -> None:
                 for adv in res['advice']:
                     print(f"  * {adv}")
 
+        elif choice == "19":
+            run_guardian_cli()
+
         elif choice == "0":
             print("Thank you for using Smith IT Company Network Diagnostic Toolkit. Goodbye!\n")
             break
 
         else:
-            print("Invalid option. Please select a number between 0 and 18.")
+            print("Invalid option. Please select a number between 0 and 19.")
 
         try:
             input("\nPress Enter to return to main menu...")
@@ -599,6 +605,7 @@ def main() -> None:
     parser.add_argument("--lan-scan", "--lan", action="store_true", help="Run high-speed LAN subnet device discovery")
     parser.add_argument("--wifi-info", "--wifi", action="store_true", help="Inspect Wi-Fi signal, channel, and link speed")
     parser.add_argument("--jitter", action="store_true", help="Run VoIP and gaming stability / jitter test")
+    parser.add_argument("--guardian", "--auto-heal", action="store_true", help="Launch real-time self-healing network guardian")
 
     # If user ran `python run.py` without flags, open interactive menu!
     if len(sys.argv) == 1:
@@ -675,6 +682,10 @@ def main() -> None:
         print(f"VoIP MOS Score: {res['mos_score']} [{res['grade']}]")
         print(f"Zoom / Teams:   {res['zoom_status']}")
         print(f"Gaming Rating:  {res['gaming_status']}")
+        return
+
+    if args.guardian:
+        run_guardian_cli()
         return
 
     # Configure logger with privacy setting

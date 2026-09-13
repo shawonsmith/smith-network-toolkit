@@ -25,6 +25,7 @@ from src.diagnostics.traceroute import run_traceroute
 from src.diagnostics.lan_scanner import scan_local_network
 from src.diagnostics.wifi_analyzer import analyze_wifi_status
 from src.diagnostics.jitter import run_jitter_stability_test
+from src.diagnostics.guardian import NetworkGuardian
 from src.utils.privacy import mask_scan_report
 from src.utils.logger import LOG_FILE
 
@@ -38,6 +39,7 @@ class NetworkToolkitGUI:
         self.root.configure(bg="#0f172a")
 
         self.last_report = None
+        self.guardian: Optional[NetworkGuardian] = None
         self._setup_styles()
         self._build_ui()
 
@@ -92,6 +94,16 @@ class NetworkToolkitGUI:
         )
         style.map("Danger.TButton", background=[("active", "#991b1b")])
 
+        # Guardian Active Style
+        style.configure(
+            "GuardianActive.TButton",
+            background="#16a34a",
+            foreground="#ffffff",
+            font=("Segoe UI", 9, "bold"),
+            padding=5
+        )
+        style.map("GuardianActive.TButton", background=[("active", "#15803d")])
+
         # Treeview
         style.configure(
             "Treeview",
@@ -134,6 +146,21 @@ class NetworkToolkitGUI:
             style="Muted.TLabel"
         )
         self.status_label.pack(side="right")
+
+        self.btn_guardian = ttk.Button(
+            score_frame,
+            text="🛡️ Auto-Heal: OFF",
+            style="Secondary.TButton",
+            command=self._toggle_guardian
+        )
+        self.btn_guardian.pack(side="right", padx=(8, 12))
+
+        self.guardian_lbl = ttk.Label(
+            score_frame,
+            text="",
+            style="Muted.TLabel"
+        )
+        self.guardian_lbl.pack(side="right", padx=6)
 
         # Main Split Content
         main_split = ttk.Frame(self.root, style="TFrame")
@@ -248,6 +275,9 @@ class NetworkToolkitGUI:
 
         self.btn_jitter = ttk.Button(row2, text="🎯 [18] VoIP/Jitter", style="Secondary.TButton", command=self._run_jitter_test)
         self.btn_jitter.pack(side="left", padx=3)
+
+        self.btn_guardian_b = ttk.Button(row2, text="🛡️ [19] Auto-Heal", style="Secondary.TButton", command=self._toggle_guardian)
+        self.btn_guardian_b.pack(side="left", padx=3)
 
         self.btn_exit = ttk.Button(row2, text="❌ [0] Exit", style="Danger.TButton", command=self._run_exit)
         self.btn_exit.pack(side="right", padx=3)
@@ -532,7 +562,50 @@ class NetworkToolkitGUI:
             self.root.after(0, lambda: self._set_status("Unit tests finished."))
         threading.Thread(target=worker, daemon=True).start()
 
+    def _toggle_guardian(self):
+        if not self.guardian or not self.guardian.is_running():
+            self.guardian = NetworkGuardian(
+                probe_interval=5.0,
+                on_heartbeat=self._on_guardian_heartbeat,
+                on_incident=self._on_guardian_incident
+            )
+            self.guardian.start()
+            self.btn_guardian.config(text="🛡️ Auto-Heal: ON", style="GuardianActive.TButton")
+            self.btn_guardian_b.config(text="🛡️ [19] Auto-Heal: ON", style="GuardianActive.TButton")
+            self.guardian_lbl.config(text="Watching 24/7...", foreground="#34d399")
+            self._set_status("Real-Time Self-Healing Guardian activated.")
+        else:
+            self.guardian.stop()
+            self.btn_guardian.config(text="🛡️ Auto-Heal: OFF", style="Secondary.TButton")
+            self.btn_guardian_b.config(text="🛡️ [19] Auto-Heal", style="Secondary.TButton")
+            self.guardian_lbl.config(text="", foreground="#94a3b8")
+            self._set_status("Real-Time Self-Healing Guardian deactivated.")
+
+    def _on_guardian_heartbeat(self, hb):
+        def update():
+            if not self.guardian or not self.guardian.is_running():
+                return
+            gw = f"{hb['gateway_latency_ms']:.0f}ms" if hb['gateway_ok'] and hb['gateway_latency_ms'] else ("OK" if hb['gateway_ok'] else "FAIL")
+            dns = "OK" if hb['dns_ok'] else "FAIL"
+            net = f"{hb['internet_latency_ms']:.0f}ms" if hb['internet_ok'] and hb['internet_latency_ms'] else ("OK" if hb['internet_ok'] else "FAIL")
+            self.guardian_lbl.config(text=f"Protected: Router {gw} | DNS {dns} | Net {net}")
+        self.root.after(0, update)
+
+    def _on_guardian_incident(self, inc):
+        def update():
+            self.guardian_lbl.config(
+                text=f"⚡ Auto-Healed ({inc['timestamp'].split()[-1]}): {inc['action'][:22]}...",
+                foreground="#34d399"
+            )
+            messagebox.showinfo(
+                "🛡️ Autonomous Network Healing Event",
+                f"Smith Network Guardian automatically resolved a connection issue!\n\nTrigger: {inc['trigger']}\nAction:  {inc['action']}\nResult:  {inc['message']} ({inc['duration_sec']}s)"
+            )
+        self.root.after(0, update)
+
     def _run_exit(self):
+        if self.guardian and self.guardian.is_running():
+            self.guardian.stop()
         self.root.destroy()
 
 
