@@ -3,9 +3,9 @@
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Code Style: Clean](https://img.shields.io/badge/code%20style-modular-brightgreen.svg)]()
-[![Build & Tests](https://img.shields.io/badge/tests-passing-success.svg)]()
+[![Build & Tests](https://img.shields.io/badge/tests-41%20passing-success.svg)]()
 
-A lightweight, modular, and cross-platform network troubleshooting toolkit engineered for IT support students, junior systems engineers, helpdesk technicians, and small office administrators. It systematically diagnoses connectivity issues, assigns an empirical 0–100 health score, diagnoses root causes (e.g., DHCP APIPA failure, DNS resolver failure, ISP/upstream outages, local router issues), and generates readable terminal dashboards and modern HTML reports.
+A lightweight, modular, and cross-platform enterprise network troubleshooting toolkit engineered for IT support students, junior systems engineers, helpdesk technicians, and small office administrators. It systematically diagnoses connectivity issues, assigns an empirical 0–100 health score, diagnoses root causes (e.g., DHCP APIPA failure, DNS resolver failure, ISP/upstream outages, local router issues), and delivers interactive terminal dashboards, modern HTML reports, and a Desktop GUI.
 
 ---
 
@@ -18,12 +18,16 @@ Troubleshooting network issues on end-user machines often leads to guesswork: gu
 - **Gateway Reachability**: Local default router discovery and latency benchmark (with ICMP and TCP fallback).
 - **Multi-Stage Internet Connectivity**: Differentiates between local LAN failure, ISP upstream loss, and DNS resolution failures.
 - **Isolated DNS Performance**: Benchmarks domain resolution response times against major internet infrastructure independently of web browsing.
-- **Link Stability**: High-precision packet loss grading and round-trip latency statistics.
-- **Informational Public IP**: Automatic external IPv4 detection.
+- **DNS Speed Benchmark**: Compares Cloudflare (1.1.1.1), Google (8.8.8.8), Quad9 (9.9.9.9), and OpenDNS (208.67.222.222) side-by-side.
+- **Common Port & Firewall Scanner**: Tests critical service ports (HTTP 80, HTTPS 443, DNS 53, SSH 22, RDP 3389, SMTP 587, IMAP 993).
+- **Hop-by-Hop Visual Traceroute**: Identifies exactly which router hop along the internet path is dropping packets or adding delay.
+- **Live Ping & Packet Drop Monitor**: Real-time continuous monitor with micro-drop detection for calls and gaming.
+- **Internet Download Speed Test**: Direct CDN throughput measurement reporting real-world connection speed in Mbps.
 - **100-Point Health Score**: Weighted scoring system grading overall connection health from *Poor* to *Excellent*.
 - **Root-Cause Diagnosis Engine**: Rule-based detection pinpointing specific issues (APIPA 169.254.x.x, ISP outages, packet loss spikes) with step-by-step remediation advice.
+- **Quick Network Repair Wizard**: 1-click Windows DNS Cache Flush (`ipconfig /flushdns`), registration, and DHCP renewal.
 - **Privacy Shield**: Built-in `--privacy` masking for screenshots, bug reports, and portfolio sharing.
-- **Export Formats**: Modern standalone responsive HTML dashboard reports and JSON output for automated pipelines.
+- **Export & GUI Options**: Modern standalone responsive HTML dashboard reports (with auto-browser open) and a Desktop Graphical Window (`run_gui.bat`).
 
 ---
 
@@ -37,65 +41,18 @@ In IT helpdesk and support environments, junior technicians often execute disjoi
 
 ## Features
 
+- 🖱️ **One-Click Launchers**: Double-click `run.bat` for interactive terminal or `run_gui.bat` for the Desktop GUI window.
 - ⚡ **Zero-Delay Diagnostics**: Rapid scans complete in seconds using non-blocking socket checks and optimized ping counts.
+- 🏎️ **Multi-Resolver DNS Benchmark**: Side-by-side speed ranking of Cloudflare, Google, Quad9, and OpenDNS.
+- 🔌 **Firewall & Port Scanner**: Validates connectivity for Web, RDP, SSH, DNS, and Mail ports.
+- 📈 **Real-Time Ping Watcher**: Continuous live ping monitoring detecting transient micro packet drops.
+- 🗺️ **Visual Traceroute**: Hop-by-hop latency path analysis from local LAN to destination.
+- 🚀 **CDN Download Speed Test**: Real-time throughput bandwidth test reporting Mbps.
+- 🛠️ **1-Click Repair Wizard**: Automatically flushes DNS cache and renews DHCP IP leases.
 - 🛡️ **Firewall & ICMP Resilient**: Automatic TCP handshake fallback ensures accurate testing even when local firewalls or upstream ISPs block ICMP ping.
-- 🎯 **Dual-Tier Latency Scoring**: Distinguishes local LAN latency (router) from regional internet latency, preventing international distance from unfairly penalizing a healthy local connection.
+- 🎯 **Dual-Tier Latency Scoring**: Distinguishes local LAN latency (router) from regional internet latency.
 - 🔒 **Privacy Mode**: Masks sensitive private IPs (`192.168.0.xxx`), public IPs (`103.xxx.xxx.128`), and MAC addresses across CLI, JSON, HTML reports, and log files.
-- 📊 **Modern HTML Report**: Beautiful, single-file, responsive dashboard featuring circular SVG health gauges, summary cards, diagnostic tables, and remediation lists.
-- 🤖 **Automated Diagnostics**: Evaluates 6+ industry troubleshooting rules and provides numbered action steps.
-- 💻 **Cross-Platform**: Fully tested on Windows 10/11, Linux, and macOS.
-
----
-
-## How It Works
-
-When launched, the toolkit executes a methodical top-to-bottom troubleshooting pipeline:
-
-```text
-       START
-         │
-         ▼
- ┌───────────────┐
- │   Detect OS   │ ──► Hostname, OS distribution/version
- └───────┬───────┘
-         ▼
- ┌───────────────┐
- │  Network NIC  │ ──► Active adapter, MAC, IPv4, Subnet, APIPA check
- └───────┬───────┘
-         ▼
- ┌───────────────┐
- │ Find Gateway  │ ──► Auto-discover default router IP
- └───────┬───────┘
-         ▼
- ┌───────────────┐
- │ Test Gateway  │ ──► ICMP Ping + TCP 80/53 fallback (<15 ms expected)
- └───────┬───────┘
-         ▼
- ┌───────────────┐
- │ Test Internet │ ──► Stage 1: Gateway -> Stage 2: Direct IP -> Stage 3: HTTPS
- └───────┬───────┘
-         ▼
- ┌───────────────┐
- │   Test DNS    │ ──► Domain resolution speed across Google, Cloudflare, GitHub
- └───────┬───────┘
-         ▼
- ┌───────────────┐
- │ Latency & Loss│ ──► Multi-target RTT metrics & packet loss grading
- └───────┬───────┘
-         ▼
- ┌───────────────┐
- │   Public IP   │ ──► External IPv4 lookup (informational only)
- └───────┬───────┘
-         ▼
- ┌───────────────┐
- │ Diagnosis &   │ ──► Evaluate troubleshooting rules & 100-pt rubric
- │ Health Score  │
- └───────┬───────┘
-         ▼
- ┌───────────────┐
- │ Output Report │ ──► Rich Terminal Console, JSON, or Modern HTML Dashboard
- └───────────────┘
-```
+- 📊 **Modern HTML Report**: Single-file, responsive dashboard featuring circular SVG health gauges, summary cards, and remediation lists.
 
 ---
 
@@ -111,17 +68,8 @@ git clone https://github.com/your-username/smith-it-company-network-toolkit.git
 cd smith-it-company-network-toolkit
 ```
 
-### 2. Create Virtual Environment & Install Dependencies
+### 2. Install Dependencies
 ```bash
-# Windows
-python -m venv venv
-.\venv\Scripts\activate
-
-# Linux / macOS
-python3 -m venv venv
-source venv/bin/activate
-
-# Install required packages
 pip install -r requirements.txt
 ```
 
@@ -129,82 +77,58 @@ pip install -r requirements.txt
 
 ## Usage
 
-Run standard full scan:
+### 🖱️ Easy Method (Double Click)
+- **Terminal Menu**: Double-click `run.bat`
+- **Desktop GUI**: Double-click `run_gui.bat`
+
+### 💻 Command-Line Interface
+
+Run interactive numbered menu:
 ```bash
 python run.py
 ```
 
-### Command-Line Options
+```text
+┌─────────────────────────────────────────────┐
+│ SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT │
+│ Main Menu - Select an action below          │
+└─────────────────────────────────────────────┘
 
-| Command | Purpose |
+ [1]   Full Diagnostic Scan
+ [2]   Quick Diagnostic Scan
+ [3]   Full Scan + Generate HTML Report (Auto-Opens in Browser)
+ [4]   Privacy Mode Scan (Mask IP & MAC)
+ [5]   DNS Diagnostics Only
+ [6]   Default Gateway Test Only
+ [7]   DNS Speed Benchmark & Comparison (Cloudflare, Google, Quad9)
+ [8]   Common Port & Service Connectivity Scan
+ [9]   Live Ping & Packet Drop Monitor (Real-time Watcher)
+ [10]  Hop-by-Hop Visual Traceroute
+ [11]  Internet Download Speed Test (Mbps)
+ [12]  Launch Desktop GUI Dashboard
+ [13]  Quick Network Repair & DNS Flush Wizard
+ [14]  View Diagnostic Logs
+ [15]  Run Automated Unit Tests (pytest)
+ [0]   Exit
+
+Enter your choice [0-15]: 
+```
+
+### Direct CLI Flags (Automation / Scripts)
+
+| Flag | Description |
 | :--- | :--- |
-| `python run.py` | Full end-to-end network diagnostic scan |
-| `python run.py --quick` | Rapid scan using fewer test packets |
-| `python run.py --report` | Generate modern HTML report in `reports/` |
-| `python run.py --privacy` | Mask private IP, public IP, and MAC addresses |
-| `python run.py --json` | Output machine-readable JSON to stdout |
-| `python run.py --dns` | Run isolated DNS resolution benchmarks only |
-| `python run.py --gateway` | Run gateway detection and ping only |
-| `python run.py --output custom.html` | Specify custom path for HTML report |
-
----
-
-## Example Terminal Output
-
-### Standard Scan
-```text
-┌──────────────────────────────────────────────────┐
-│ SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT                 │
-│ Automated Network Troubleshooting & Health Score │
-└──────────────────────────────────────────────────┘
-        Device & Network Adapter        
-                                        
-  Hostname           DESKTOP-TJEGCB6    
-  Operating System   Windows 10         
-  Adapter Name       Ethernet           
-  MAC Address        1C-1B-0D-7F-88-64  
-  IPv4 Address       192.168.0.205      
-  Subnet Mask        255.255.255.0      
-  Default Gateway    192.168.0.1        
-  DNS Servers        192.168.0.1        
-  Public IP          103.16.248.128     
-                                        
-                               Diagnostic Checks                               
-┌──────────────┬────────┬─────────────────┬───────────────────────────────────┐
-│ Target Check │ Status │ Measured Metric │ Summary Message                   │
-├──────────────┼────────┼─────────────────┼───────────────────────────────────┤
-│ Gateway      │ [PASS] │ <1 ms           │ Gateway reachable                 │
-│ Internet     │ [PASS] │ Connected       │ Internet connection healthy.      │
-│ DNS          │ [PASS] │ 22 ms           │ DNS resolution is fast and        │
-│              │        │                 │ consistent.                       │
-│ Packet Loss  │ [PASS] │ 0%              │ No packet loss detected.          │
-│ Latency      │ [PASS] │ 14 ms           │ Low latency connection.           │
-└──────────────┴────────┴─────────────────┴───────────────────────────────────┘
-╔═══════════════════════════════════════════╗
-║ Network Health Score: 100/100 (Excellent) ║
-╚═══════════════════════════════════════════╝
-
-[PASS] No network connectivity or DNS issues identified.
-```
-
-### Privacy Mode Output (`--privacy`)
-```text
-┌─────────────────────────────────────────────────────────────────────────┐
-│ SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT                                        │
-│ Automated Network Troubleshooting & Health Score  [Privacy Mode Active] │
-└─────────────────────────────────────────────────────────────────────────┘
-        Device & Network Adapter        
-                                        
-  Hostname           DESKTOP-TJEGCB6    
-  Operating System   Windows 10         
-  Adapter Name       Ethernet           
-  MAC Address        1C-xx-xx-xx-88-xx  
-  IPv4 Address       192.168.0.xxx      
-  Subnet Mask        255.255.255.0      
-  Default Gateway    192.168.0.xxx      
-  DNS Servers        192.168.0.xxx      
-  Public IP          103.xxx.xxx.128    
-```
+| `python run.py --quick` | Accelerated scan using fewer ping samples |
+| `python run.py --report` | Full scan + generates and auto-opens HTML report |
+| `python run.py --privacy` | Masks sensitive IP & MAC addresses across all outputs |
+| `python run.py --json` | Outputs machine-readable JSON for monitoring systems |
+| `python run.py --dns-bench` | Run DNS speed benchmark across global providers |
+| `python run.py --ports` | Run common port firewall sweep |
+| `python run.py --traceroute` | Run hop-by-hop traceroute |
+| `python run.py --speedtest` | Run internet download speed test |
+| `python run.py --monitor` | Launch live real-time ping watcher |
+| `python run.py --repair` | Run quick network repair & flush DNS |
+| `python run.py --gui` | Launch the Desktop Graphical Interface |
 
 ---
 
@@ -236,106 +160,14 @@ python run.py
 | **Adapter Health** | 5 | Physical or wireless interface UP and operating |
 | **Total** | **100** | **90-100: Excellent \| 75-89: Good \| 60-74: Needs Attention \| <60: Poor** |
 
-*Note: External Public IP lookups are informational only and never deduct points.*
-
----
-
-## Privacy Mode
-
-Sharing screenshots or diagnostic files online often exposes internal IP schemes, MAC hardware IDs, and public IP locations.
-
-Invoking `--privacy` automatically sanitizes:
-- **Private IPv4**: `192.168.0.105` ➔ `192.168.0.xxx`
-- **MAC Address**: `1C-1B-0D-7F-88-64` ➔ `1C-xx-xx-xx-88-xx`
-- **Public IPv4**: `103.16.248.128` ➔ `103.xxx.xxx.128`
-- **Logs & JSON**: Sanitization applies to `logs/toolkit.log`, stdout JSON, and HTML reports.
-
----
-
-## Project Structure
-
-```
-smith-it-company-network-toolkit/
-│
-├── src/
-│   ├── main.py                         # CLI entry point, argument parsing, rendering
-│   │
-│   ├── models/
-│   │   └── result.py                   # Standardized DiagnosticResult & ScanReport models
-│   │
-│   ├── diagnostics/                    # Modular network inspection checks
-│   │   ├── adapter.py                  # Hostname, OS, NIC, MAC, IPv4, Subnet, APIPA
-│   │   ├── gateway.py                  # Default gateway discovery & ICMP/TCP ping
-│   │   ├── connectivity.py             # Multi-stage internet check (Gateway -> IP -> HTTPS)
-│   │   ├── dns.py                      # Pure DNS query resolution time & consistency
-│   │   ├── latency.py                  # Dual-tier latency across Gateway & public hosts
-│   │   ├── packet_loss.py              # Packet loss rate & quality grading
-│   │   └── public_ip.py                # Public IP detection with fallback endpoints
-│   │
-│   ├── scoring/
-│   │   └── health_score.py             # 100-point weighted health score rubric
-│   │
-│   ├── diagnosis/
-│   │   └── diagnosis_engine.py         # Rule-based root-cause identification & recommendations
-│   │
-│   ├── reporting/
-│   │   └── report_generator.py         # Self-contained, responsive HTML report generator
-│   │
-│   └── utils/
-│       ├── platform_utils.py           # Cross-platform ping, TCP ping, routing utilities
-│       ├── privacy.py                  # Privacy masking engine
-│       └── logger.py                   # File logging to logs/toolkit.log
-│
-├── tests/                              # Comprehensive test suite with pytest & mock data
-│   ├── test_adapter.py
-│   ├── test_gateway.py
-│   ├── test_connectivity.py
-│   ├── test_dns.py
-│   ├── test_packet_loss.py
-│   ├── test_latency.py
-│   ├── test_scoring.py
-│   ├── test_diagnosis.py
-│   └── test_privacy.py
-│
-├── reports/                            # Generated HTML diagnostic reports
-├── logs/                               # Diagnostic event logs (logs/toolkit.log)
-├── screenshots/                        # Terminal and report screenshots
-├── README.md                           # Documentation
-├── requirements.txt                    # Project dependencies
-├── .gitignore                          # Git ignore configuration
-├── LICENSE                             # MIT License
-└── run.py                              # Convenient root runner script
-```
-
 ---
 
 ## Testing
 
-The test suite includes 23 unit tests with mock networking to test every scenario without requiring active internet:
-- APIPA detection & diagnosis
-- Gateway reachability and TCP fallback
-- Tiered connectivity states (Healthy, Limited, ISP Down, LAN Down)
-- DNS resolution timeouts and speed thresholds
-- Packet loss grading calculations
-- Health score edge cases (100% perfect, APIPA, DNS fail)
-- Privacy masking verification
-
-Run the complete test suite:
+Run all 41 automated unit tests:
 ```bash
 pytest -v tests/
 ```
-
----
-
-## Roadmap
-
-### Future Features (v2.0)
-- [ ] **Cross-Platform GUI**: Modern desktop interface using PyQt / Tkinter / Electron.
-- [ ] **Wi-Fi Signal Analysis**: RSSI signal strength (dBm), channel congestion, BSSID inspection.
-- [ ] **Visual Traceroute**: Interactive hop-by-hop latency and autonomous system (ASN) path mapping.
-- [ ] **Port Testing**: Built-in scanning for common service ports (SSH, RDP, HTTP, HTTPS).
-- [ ] **DNS Benchmark**: Side-by-side benchmark comparing Google, Cloudflare, Quad9, and OpenDNS.
-- [ ] **Automated AI Technician**: LLM-assisted root-cause explanations and command generation.
 
 ---
 

@@ -28,6 +28,11 @@ from src.diagnostics.dns import test_dns
 from src.diagnostics.packet_loss import test_packet_loss
 from src.diagnostics.latency import measure_latency
 from src.diagnostics.public_ip import detect_public_ip
+from src.diagnostics.dns_benchmark import run_dns_benchmark
+from src.diagnostics.ports import scan_ports
+from src.diagnostics.traceroute import run_traceroute
+from src.diagnostics.speedtest import test_download_speed
+from src.diagnostics.live_monitor import run_live_monitor
 from src.scoring.health_score import calculate_health_score
 from src.diagnosis.diagnosis_engine import run_diagnosis, extract_all_recommendations
 from src.reporting.report_generator import generate_html_report
@@ -175,7 +180,6 @@ def render_rich_terminal(report: ScanReport) -> None:
     pub_ip = report.public_ip_info.get("ip", "Unavailable")
     info_table.add_row("Public IP", pub_ip)
 
-    # Show Wi-Fi details if active
     if adapter.wifi_info.get("ssid"):
         info_table.add_row("Wi-Fi SSID", adapter.wifi_info["ssid"])
         if adapter.wifi_info.get("signal"):
@@ -338,33 +342,45 @@ def interactive_menu() -> None:
             menu_text.append("SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT\n", style="bold cyan")
             menu_text.append("Main Menu - Select an action below", style="dim white")
             console.print("\n", Panel(menu_text, box=box.ROUNDED, expand=False))
-            console.print("[bold cyan][1][/bold cyan]  Full Diagnostic Scan")
-            console.print("[bold cyan][2][/bold cyan]  Quick Diagnostic Scan")
-            console.print("[bold cyan][3][/bold cyan]  Full Scan + Generate HTML Report (Auto-Opens in Browser)")
-            console.print("[bold cyan][4][/bold cyan]  Privacy Mode Scan (Mask IP & MAC)")
-            console.print("[bold cyan][5][/bold cyan]  DNS Diagnostics Only")
-            console.print("[bold cyan][6][/bold cyan]  Default Gateway Test Only")
-            console.print("[bold cyan][7][/bold cyan]  Run Automated Unit Tests (pytest)")
-            console.print("[bold cyan][8][/bold cyan]  View Diagnostic Logs")
-            console.print("[bold cyan][9][/bold cyan]  Quick Network Repair & DNS Flush Wizard")
-            console.print("[bold red][0][/bold red]  Exit\n")
+            console.print("[bold cyan][1][/bold cyan]   Full Diagnostic Scan")
+            console.print("[bold cyan][2][/bold cyan]   Quick Diagnostic Scan")
+            console.print("[bold cyan][3][/bold cyan]   Full Scan + Generate HTML Report (Auto-Opens in Browser)")
+            console.print("[bold cyan][4][/bold cyan]   Privacy Mode Scan (Mask IP & MAC)")
+            console.print("[bold cyan][5][/bold cyan]   DNS Diagnostics Only")
+            console.print("[bold cyan][6][/bold cyan]   Default Gateway Test Only")
+            console.print("[bold cyan][7][/bold cyan]   DNS Speed Benchmark & Comparison (Cloudflare, Google, Quad9)")
+            console.print("[bold cyan][8][/bold cyan]   Common Port & Service Connectivity Scan")
+            console.print("[bold cyan][9][/bold cyan]   Live Ping & Packet Drop Monitor (Real-time Watcher)")
+            console.print("[bold cyan][10][/bold cyan]  Hop-by-Hop Visual Traceroute")
+            console.print("[bold cyan][11][/bold cyan]  Internet Download Speed Test (Mbps)")
+            console.print("[bold cyan][12][/bold cyan]  Launch Desktop GUI Dashboard")
+            console.print("[bold cyan][13][/bold cyan]  Quick Network Repair & DNS Flush Wizard")
+            console.print("[bold cyan][14][/bold cyan]  View Diagnostic Logs")
+            console.print("[bold cyan][15][/bold cyan]  Run Automated Unit Tests (pytest)")
+            console.print("[bold red][0][/bold red]   Exit\n")
         else:
             print("\n" + "=" * 55)
             print("   SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT")
             print("=" * 55)
-            print(" [1] Full Diagnostic Scan")
-            print(" [2] Quick Diagnostic Scan")
-            print(" [3] Full Scan + Generate HTML Report (Auto-Opens in Browser)")
-            print(" [4] Privacy Mode Scan (Mask IP & MAC)")
-            print(" [5] DNS Diagnostics Only")
-            print(" [6] Default Gateway Test Only")
-            print(" [7] Run Automated Unit Tests (pytest)")
-            print(" [8] View Diagnostic Logs")
-            print(" [9] Quick Network Repair & DNS Flush Wizard")
-            print(" [0] Exit\n")
+            print(" [1]  Full Diagnostic Scan")
+            print(" [2]  Quick Diagnostic Scan")
+            print(" [3]  Full Scan + Generate HTML Report (Auto-Opens in Browser)")
+            print(" [4]  Privacy Mode Scan (Mask IP & MAC)")
+            print(" [5]  DNS Diagnostics Only")
+            print(" [6]  Default Gateway Test Only")
+            print(" [7]  DNS Speed Benchmark & Comparison (Cloudflare, Google, Quad9)")
+            print(" [8]  Common Port & Service Connectivity Scan")
+            print(" [9]  Live Ping & Packet Drop Monitor (Real-time Watcher)")
+            print(" [10] Hop-by-Hop Visual Traceroute")
+            print(" [11] Internet Download Speed Test (Mbps)")
+            print(" [12] Launch Desktop GUI Dashboard")
+            print(" [13] Quick Network Repair & DNS Flush Wizard")
+            print(" [14] View Diagnostic Logs")
+            print(" [15] Run Automated Unit Tests (pytest)")
+            print(" [0]  Exit\n")
 
         try:
-            choice = input("Enter your choice [0-9]: ").strip()
+            choice = input("Enter your choice [0-15]: ").strip()
         except (KeyboardInterrupt, EOFError):
             print("\nExiting. Goodbye!")
             break
@@ -414,10 +430,63 @@ def interactive_menu() -> None:
             print(f"Message:         {gw_res.message}")
 
         elif choice == "7":
-            print("Running Automated Pytest Suite (34 tests)...")
-            subprocess.run([sys.executable, "-m", "pytest", "-v", "tests/"])
+            print("Benchmarking top global DNS resolvers (Cloudflare, Google, Quad9, OpenDNS)...")
+            adapter = detect_adapter_info()
+            res = run_dns_benchmark(local_dns=adapter.default_gateway)
+            print(f"\nFastest Resolver: {res['fastest']['name']} ({res['fastest']['avg_ms']} ms)\n")
+            print(f"{'Resolver':<25} {'IP':<16} {'Response Time':<15} {'Success':<10}")
+            print("-" * 68)
+            for r in res["results"]:
+                ms_val = f"{r.get('avg_ms')} ms" if r.get('avg_ms') is not None else "TIMEOUT"
+                print(f"{r['name']:<25} {r['ip']:<16} {ms_val:<15} {r['success_rate']:<10}")
+            if res.get("recommendation"):
+                print(f"\n💡 Recommendation: {res['recommendation']}")
 
         elif choice == "8":
+            target = input("Enter target host to scan [Default 1.1.1.1]: ").strip() or "1.1.1.1"
+            print(f"\nScanning common ports on {target}...")
+            p_res = scan_ports(target)
+            print(f"\nResults for {p_res['target']}: {p_res['open_count']} Open, {p_res['filtered_count']} Filtered, {p_res['closed_count']} Closed\n")
+            print(f"{'Port':<8} {'Service':<30} {'Status':<12} {'Latency':<10}")
+            print("-" * 62)
+            for r in p_res["results"]:
+                lat = f"{r.get('latency_ms')} ms" if r.get('latency_ms') else "-"
+                print(f"{r['port']:<8} {r['service']:<30} {r['status']:<12} {lat:<10}")
+
+        elif choice == "9":
+            adapter = detect_adapter_info()
+            run_live_monitor(gateway_ip=adapter.default_gateway, internet_target="1.1.1.1")
+
+        elif choice == "10":
+            target = input("Enter traceroute destination [Default 1.1.1.1]: ").strip() or "1.1.1.1"
+            print(f"\nTracing hop-by-hop route to {target} (Please wait 5-10 seconds)...")
+            tr_res = run_traceroute(target)
+            print(f"\n{'Hop':<6} {'IP Address':<20} {'Latency':<12} {'Type':<25}")
+            print("-" * 65)
+            for h in tr_res["hops"]:
+                lat = f"{h['avg_ms']} ms" if h['avg_ms'] is not None else "*"
+                print(f"{h['hop']:<6} {h['ip']:<20} {lat:<12} {h['desc']:<25}")
+
+        elif choice == "11":
+            print("Measuring internet download speed via global CDN streaming...")
+            sp_res = test_download_speed()
+            print(f"\nDownload Speed:   {sp_res['speed_mbps']} Mbps")
+            print(f"Data Transferred: {sp_res['data_mb']} MB in {sp_res['duration_sec']}s")
+            print(f"Service Endpoint: {sp_res['provider']}")
+            print(f"Classification:   {sp_res['rating']}")
+
+        elif choice == "12":
+            print("Launching Desktop Graphical Interface...")
+            try:
+                subprocess.Popen([sys.executable, "-m", "src.gui.app"])
+                print("GUI launched in a separate window.")
+            except Exception as e:
+                print(f"Could not open GUI: {e}")
+
+        elif choice == "13":
+            run_quick_network_repair()
+
+        elif choice == "14":
             print("Latest Diagnostic Logs:")
             print("-" * 55)
             if LOG_FILE.exists():
@@ -429,15 +498,16 @@ def interactive_menu() -> None:
                 print("No log entries found yet.")
             print("-" * 55)
 
-        elif choice == "9":
-            run_quick_network_repair()
+        elif choice == "15":
+            print("Running Automated Pytest Suite (34 tests)...")
+            subprocess.run([sys.executable, "-m", "pytest", "-v", "tests/"])
 
         elif choice == "0":
             print("Thank you for using Smith IT Company Network Diagnostic Toolkit. Goodbye!\n")
             break
 
         else:
-            print("Invalid option. Please select a number between 0 and 9.")
+            print("Invalid option. Please select a number between 0 and 15.")
 
         try:
             input("\nPress Enter to return to main menu...")
@@ -457,10 +527,13 @@ def main() -> None:
     parser.add_argument("--json", action="store_true", help="Output machine-readable JSON to stdout")
     parser.add_argument("--dns", action="store_true", help="Run DNS diagnostics only")
     parser.add_argument("--gateway", action="store_true", help="Run Gateway diagnostics only")
+    parser.add_argument("--dns-bench", action="store_true", help="Run DNS benchmark across global providers")
+    parser.add_argument("--ports", action="store_true", help="Run common port connectivity scan")
+    parser.add_argument("--traceroute", action="store_true", help="Run hop-by-hop traceroute")
+    parser.add_argument("--speedtest", action="store_true", help="Run download speed test")
+    parser.add_argument("--monitor", action="store_true", help="Run continuous ping monitor")
     parser.add_argument("--repair", action="store_true", help="Run quick network repair (flush DNS and renew IP)")
-
-    if args := None:
-        pass
+    parser.add_argument("--gui", action="store_true", help="Launch Desktop GUI dashboard")
 
     # If user ran `python run.py` without flags, open interactive menu!
     if len(sys.argv) == 1:
@@ -473,8 +546,43 @@ def main() -> None:
         interactive_menu()
         return
 
+    if args.gui:
+        subprocess.Popen([sys.executable, "-m", "src.gui.app"])
+        return
+
     if args.repair:
         run_quick_network_repair()
+        return
+
+    if args.monitor:
+        adapter = detect_adapter_info()
+        run_live_monitor(gateway_ip=adapter.default_gateway, internet_target="1.1.1.1")
+        return
+
+    if args.traceroute:
+        res = run_traceroute("1.1.1.1")
+        for h in res["hops"]:
+            print(f"Hop {h['hop']}: {h['ip']} ({h.get('avg_ms')} ms) - {h['desc']}")
+        return
+
+    if args.speedtest:
+        res = test_download_speed()
+        print(f"Speed: {res['speed_mbps']} Mbps ({res['rating']})")
+        return
+
+    if args.ports:
+        res = scan_ports("1.1.1.1")
+        print(f"Target: {res['target']} | Open: {res['open_count']} | Filtered: {res['filtered_count']}")
+        for r in res["results"]:
+            print(f"  Port {r['port']} ({r['service']}): {r['status']}")
+        return
+
+    if args.dns_bench:
+        adapter = detect_adapter_info()
+        res = run_dns_benchmark(local_dns=adapter.default_gateway)
+        print(f"Fastest: {res['fastest']['name']} ({res['fastest']['avg_ms']} ms)")
+        for r in res["results"]:
+            print(f"  {r['name']} ({r['ip']}): {r.get('avg_ms')} ms")
         return
 
     # Configure logger with privacy setting
