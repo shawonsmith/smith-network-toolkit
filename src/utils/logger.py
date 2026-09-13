@@ -1,4 +1,4 @@
-"""Logging utility for Smith Network Diagnostic Toolkit."""
+"""Logging utility for Smith IT Company Network Diagnostic Toolkit."""
 
 import os
 import logging

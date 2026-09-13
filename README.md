@@ -1,4 +1,4 @@
-﻿# Smith Network Diagnostic Toolkit 🛠️🌐
+﻿# Smith IT Company Network Diagnostic Toolkit 🛠️🌐
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -13,7 +13,7 @@ A lightweight, modular, and cross-platform network troubleshooting toolkit engin
 
 Troubleshooting network issues on end-user machines often leads to guesswork: guessing whether the Wi-Fi is broken, if the router is down, if DNS has stalled, or if the ISP is suffering an upstream outage.
 
-**Smith Network Diagnostic Toolkit** replaces guesswork with structured diagnostic evidence. In seconds, it audits:
+**Smith IT Company Network Diagnostic Toolkit** replaces guesswork with structured diagnostic evidence. In seconds, it audits:
 - **Local Network Stack**: Hostname, OS, primary network interface, MAC address, IPv4 address, and subnet mask.
 - **Gateway Reachability**: Local default router discovery and latency benchmark (with ICMP and TCP fallback).
 - **Multi-Stage Internet Connectivity**: Differentiates between local LAN failure, ISP upstream loss, and DNS resolution failures.
@@ -107,8 +107,8 @@ When launched, the toolkit executes a methodical top-to-bottom troubleshooting p
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/your-username/smith-network-toolkit.git
-cd smith-network-toolkit
+git clone https://github.com/your-username/smith-it-company-network-toolkit.git
+cd smith-it-company-network-toolkit
 ```
 
 ### 2. Create Virtual Environment & Install Dependencies
@@ -154,7 +154,7 @@ python run.py
 ### Standard Scan
 ```text
 ┌──────────────────────────────────────────────────┐
-│ SMITH NETWORK DIAGNOSTIC TOOLKIT                 │
+│ SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT                 │
 │ Automated Network Troubleshooting & Health Score │
 └──────────────────────────────────────────────────┘
         Device & Network Adapter        
@@ -190,7 +190,7 @@ python run.py
 ### Privacy Mode Output (`--privacy`)
 ```text
 ┌─────────────────────────────────────────────────────────────────────────┐
-│ SMITH NETWORK DIAGNOSTIC TOOLKIT                                        │
+│ SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT                                        │
 │ Automated Network Troubleshooting & Health Score  [Privacy Mode Active] │
 └─────────────────────────────────────────────────────────────────────────┘
         Device & Network Adapter        
@@ -255,7 +255,7 @@ Invoking `--privacy` automatically sanitizes:
 ## Project Structure
 
 ```
-smith-network-toolkit/
+smith-it-company-network-toolkit/
 │
 ├── src/
 │   ├── main.py                         # CLI entry point, argument parsing, rendering

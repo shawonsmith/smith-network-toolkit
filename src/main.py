@@ -1,4 +1,4 @@
-﻿"""Command Line Interface and Orchestration for Smith Network Diagnostic Toolkit."""
+﻿"""Command Line Interface and Orchestration for Smith IT Company Network Diagnostic Toolkit."""
 
 import os
 import sys
@@ -103,7 +103,7 @@ def render_rich_terminal(report: ScanReport) -> None:
 
     # Header Panel
     header_text = Text()
-    header_text.append("SMITH NETWORK DIAGNOSTIC TOOLKIT\n", style="bold cyan")
+    header_text.append("SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT\n", style="bold cyan")
     header_text.append("Automated Network Troubleshooting & Health Score", style="dim white")
     if report.is_privacy_masked:
         header_text.append("  [Privacy Mode Active]", style="bold blue")
@@ -182,7 +182,7 @@ def render_plain_terminal(report: ScanReport) -> None:
     score = report.health_score
 
     print("=" * 50)
-    print("       SMITH NETWORK DIAGNOSTIC TOOLKIT")
+    print("       SMITH IT COMPANY NETWORK DIAGNOSTIC TOOLKIT")
     if report.is_privacy_masked:
         print("              [Privacy Mode]")
     print("=" * 50)
@@ -217,7 +217,7 @@ def render_plain_terminal(report: ScanReport) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Smith Network Diagnostic Toolkit - Automated network troubleshooting and health scoring."
+        description="Smith IT Company Network Diagnostic Toolkit - Automated network troubleshooting and health scoring."
     )
     parser.add_argument("--quick", action="store_true", help="Perform a rapid diagnostic scan with fewer samples")
     parser.add_argument("--privacy", action="store_true", help="Mask sensitive IP and MAC addresses across CLI, JSON, HTML, and logs")

@@ -1,4 +1,4 @@
-"""Privacy masking engine for Smith Network Diagnostic Toolkit."""
+"""Privacy masking engine for Smith IT Company Network Diagnostic Toolkit."""
 
 import re
 from copy import deepcopy

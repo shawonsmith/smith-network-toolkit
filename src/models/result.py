@@ -1,4 +1,4 @@
-"""Shared data models for Smith Network Diagnostic Toolkit."""
+"""Shared data models for Smith IT Company Network Diagnostic Toolkit."""
 
 from dataclasses import dataclass, field, asdict
 from typing import Dict, Any, List, Optional

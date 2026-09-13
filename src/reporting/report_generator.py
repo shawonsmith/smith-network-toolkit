@@ -12,7 +12,7 @@ REPORT_TEMPLATE = """<!DOCTYPE html>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smith Network Diagnostic Report - {hostname}</title>
+    <title>Smith IT Company Network Diagnostic Report - {hostname}</title>
     <style>
         :root {{
             --bg-body: #0f172a;
@@ -330,7 +330,7 @@ REPORT_TEMPLATE = """<!DOCTYPE html>
         <!-- Header -->
         <div class="header">
             <div class="header-title">
-                <h1>Smith Network Diagnostic Toolkit</h1>
+                <h1>Smith IT Company Network Diagnostic Toolkit</h1>
                 <p>Automated Network Troubleshooting & Health Assessment Report</p>
                 <div style="margin-top: 8px;">
                     <span class="badge-privacy">{privacy_badge_text}</span>
@@ -407,7 +407,7 @@ REPORT_TEMPLATE = """<!DOCTYPE html>
         </div>
 
         <div class="footer">
-            Smith Network Diagnostic Toolkit v{version} • Engineered for IT Support & Systems Diagnostics
+            Smith IT Company Network Diagnostic Toolkit v{version} • Engineered for IT Support & Systems Diagnostics
         </div>
     </div>
 </body>

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Runner script for Smith Network Diagnostic Toolkit."""
+"""Runner script for Smith IT Company Network Diagnostic Toolkit."""
 
 import sys
 from src.main import main
