@@ -26,3 +26,9 @@ reports/*
 *.swp
 *.swo
 Thumbs.db
+
+# PyInstaller temporary build artifacts
+build/
+dist/
+*.spec
+

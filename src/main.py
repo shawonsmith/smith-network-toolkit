@@ -1,4 +1,4 @@
-﻿"""Command Line Interface and Orchestration for Smith IT Company Network Diagnostic Toolkit."""
+"""Command Line Interface and Orchestration for Smith IT Company Network Diagnostic Toolkit."""
 
 import os
 import sys
@@ -478,8 +478,14 @@ def interactive_menu() -> None:
         elif choice == "12":
             print("Launching Desktop Graphical Interface...")
             try:
-                subprocess.Popen([sys.executable, "-m", "src.gui.app"])
-                print("GUI launched in a separate window.")
+                if getattr(sys, "frozen", False):
+                    import threading
+                    from src.gui.app import main as run_gui_app
+                    threading.Thread(target=run_gui_app, daemon=True).start()
+                    print("Desktop GUI launched in separate window.")
+                else:
+                    subprocess.Popen([sys.executable, "-m", "src.gui.app"])
+                    print("Desktop GUI launched in a separate window.")
             except Exception as e:
                 print(f"Could not open GUI: {e}")
 
