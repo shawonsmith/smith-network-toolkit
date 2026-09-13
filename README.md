@@ -1,11 +1,11 @@
-﻿# Smith IT Company Network Diagnostic Toolkit 🛠️🌐
+# Smith IT Company Network Diagnostic Toolkit 🛠️🌐
 
 [![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Code Style: Clean](https://img.shields.io/badge/code%20style-modular-brightgreen.svg)]()
-[![Build & Tests](https://img.shields.io/badge/tests-41%20passing-success.svg)]()
+[![Build & Tests](https://img.shields.io/badge/tests-55%20passing-success.svg)]()
 
-A lightweight, modular, and cross-platform enterprise network troubleshooting toolkit engineered for IT support students, junior systems engineers, helpdesk technicians, and small office administrators. It systematically diagnoses connectivity issues, assigns an empirical 0–100 health score, diagnoses root causes (e.g., DHCP APIPA failure, DNS resolver failure, ISP/upstream outages, local router issues), and delivers interactive terminal dashboards, modern HTML reports, and a Desktop GUI.
+A lightweight, modular, and cross-platform enterprise network troubleshooting toolkit engineered for IT support students, junior systems engineers, helpdesk technicians, and small office administrators. It systematically diagnoses connectivity issues, assigns an empirical 0–100 health score, diagnoses root causes (e.g., DHCP APIPA failure, DNS resolver failure, ISP/upstream outages, local router issues), features an autonomous real-time self-healing watchdog daemon, and delivers interactive terminal dashboards, modern HTML reports, and a Desktop GUI.
 
 ---
 
@@ -23,11 +23,15 @@ Troubleshooting network issues on end-user machines often leads to guesswork: gu
 - **Hop-by-Hop Visual Traceroute**: Identifies exactly which router hop along the internet path is dropping packets or adding delay.
 - **Live Ping & Packet Drop Monitor**: Real-time continuous monitor with micro-drop detection for calls and gaming.
 - **Internet Download Speed Test**: Direct CDN throughput measurement reporting real-world connection speed in Mbps.
+- **LAN Subnet Device Discovery**: Multi-threaded ARP/socket sweep listing all active IP addresses, physical MACs, and hostnames.
+- **Advanced Wi-Fi & RF Inspector**: Signal %, RSSI dBm, 2.4/5/6 GHz channels, 802.11ax/ac/n generation, Rx/Tx link rates, and security cipher.
+- **VoIP / Gaming Jitter Analyzer**: RFC 3550 interarrival jitter, packet loss %, and ITU-T G.107 E-model estimated VoIP MOS score (1.0-4.5).
+- **Autonomous Real-Time Self-Healing Guardian**: Low-overhead background daemon that detects DNS stalls, ARP drops, or DHCP expirations and auto-heals connection in real time.
 - **100-Point Health Score**: Weighted scoring system grading overall connection health from *Poor* to *Excellent*.
 - **Root-Cause Diagnosis Engine**: Rule-based detection pinpointing specific issues (APIPA 169.254.x.x, ISP outages, packet loss spikes) with step-by-step remediation advice.
 - **Quick Network Repair Wizard**: 1-click Windows DNS Cache Flush (`ipconfig /flushdns`), registration, and DHCP renewal.
 - **Privacy Shield**: Built-in `--privacy` masking for screenshots, bug reports, and portfolio sharing.
-- **Export & GUI Options**: Modern standalone responsive HTML dashboard reports (with auto-browser open) and a Desktop Graphical Window (`run_gui.bat`).
+- **Export & GUI Options**: Modern standalone responsive HTML dashboard reports (with auto-browser open) and a 19-tool Desktop GUI window (`run_gui.bat`).
 
 ---
 
@@ -109,9 +113,13 @@ python run.py
  [13]  Quick Network Repair & DNS Flush Wizard
  [14]  View Diagnostic Logs
  [15]  Run Automated Unit Tests (pytest)
+ [16]  LAN Subnet Device Discovery / IP Scanner
+ [17]  Advanced Wi-Fi Signal & Channel Inspector
+ [18]  VoIP / Video Call (Zoom/Teams) & Gaming Stability Test
+ [19]  Real-Time Auto-Heal Guardian (Background Self-Healing)
  [0]   Exit
 
-Enter your choice [0-15]: 
+Enter your choice [0-19]: 
 ```
 
 ### Direct CLI Flags (Automation / Scripts)
@@ -129,6 +137,10 @@ Enter your choice [0-15]:
 | `python run.py --monitor` | Launch live real-time ping watcher |
 | `python run.py --repair` | Run quick network repair & flush DNS |
 | `python run.py --gui` | Launch the Desktop Graphical Interface |
+| `python run.py --lan` | High-speed multi-threaded LAN subnet device discovery |
+| `python run.py --wifi` | Deep Wi-Fi signal %, RSSI, channel, generation & link speeds |
+| `python run.py --jitter` | VoIP / Gaming RFC 3550 jitter test & MOS score evaluation |
+| `python run.py --guardian` | Launch autonomous real-time self-healing network guardian |
 
 ---
 
