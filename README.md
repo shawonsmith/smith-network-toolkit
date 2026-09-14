@@ -49,7 +49,7 @@ Troubleshooting network issues on end-user machines often leads to guesswork: gu
 | :--- | :---: | :---: | :---: | :--- |
 | **Core Diagnostics** (Ping, DNS, HTTP, Port Scan, Gateway) | ✅ Full | ✅ Full | ✅ Full | Cross-platform Python standard library & socket probes |
 | **Visual Traceroute & DNS Benchmark** | ✅ Full | ✅ Full | ✅ Full | Uses native `tracert` (Win) or `traceroute` (Unix) |
-| **VoIP / Gaming Jitter & MOS Analysis** | ✅ Full | ✅ Full | ✅ Full | RFC 3550-style active jitter estimation & G.107 model |
+| **VoIP / Gaming Jitter & MOS Analysis** | ✅ Full | ✅ Full | ✅ Full | RFC 3550-style active jitter estimation & G.107-inspired estimation |
 | **LAN Subnet Discovery & HTML Report** | ✅ Full | ✅ Full | ✅ Full | Cross-platform ARP & reverse-DNS resolution |
 | **Desktop GUI** (Tkinter / `python run.py --gui`) | ✅ Full | ✅ Full | ✅ Full | Tkinter GUI is fully cross-platform; 1-click `.bat` launcher is Windows-only |
 | **Wi-Fi Signal & Channel Inspector** | ✅ Full | ⚠️ Fallback | ⚠️ Fallback | Native `netsh wlan` on Windows; falls back to Ethernet link on Unix |
@@ -160,8 +160,8 @@ Enter your choice [0-19]:
 | `python run.py --repair` | Run quick network repair & flush DNS |
 | `python run.py --gui` | Launch the Desktop Graphical Interface |
 | `python run.py --lan` | High-speed multi-threaded LAN subnet device discovery |
-| `python run.py --wifi` | Deep Wi-Fi signal %, RSSI, channel, generation & link speeds |
-| `python run.py --jitter` | VoIP / Gaming RFC 3550 jitter test & MOS score evaluation |
+| `python run.py --wifi` | Wi-Fi signal %, estimated RSSI, channel, generation & link speeds |
+| `python run.py --jitter` | VoIP / Gaming RFC 3550-style jitter & MOS score estimation |
 | `python run.py --guardian` | Launch autonomous real-time self-healing network guardian |
 
 ---
