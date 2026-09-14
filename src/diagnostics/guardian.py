@@ -17,8 +17,8 @@ from src.utils.platform_utils import ping_host, tcp_ping, is_valid_ipv4
 class NetworkGuardian:
     """
     Continuous background network watchdog and self-healing agent.
-    Detects network stalls, DNS corruption, and DHCP drops, and executes
-    targeted remediations automatically in real time.
+    Detects DNS resolution freezes, suspected local gateway/ARP communication issues,
+    and DHCP assignment failures (APIPA), executing targeted remediations automatically in real time.
     """
 
     def __init__(

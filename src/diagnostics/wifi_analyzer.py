@@ -15,7 +15,7 @@ def get_wifi_generation(radio_type: str, band: Optional[str] = None) -> str:
     if "802.11be" in radio_lower:
         return "Wi-Fi 7 (802.11be)"
     elif "802.11ax" in radio_lower:
-        if band == "6.0 GHz":
+        if band and ("6.0" in band or "6 ghz" in band.lower() or "6ghz" in band.lower()):
             return "Wi-Fi 6E (802.11ax 6GHz)"
         return "Wi-Fi 6 (802.11ax)"
     elif "802.11ac" in radio_lower:

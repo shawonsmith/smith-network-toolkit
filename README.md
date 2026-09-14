@@ -32,7 +32,7 @@ Troubleshooting network issues on end-user machines often leads to guesswork: gu
 - **LAN Subnet Device Discovery**: Multi-threaded ARP/socket sweep listing all active IP addresses, physical MACs, and hostnames.
 - **Advanced Wi-Fi Signal & Channel Inspector**: Signal %, estimated RSSI (dBm), 2.4/5/6 GHz channels, 802.11ax/ac/n generation, Rx/Tx link rates, and security cipher.
 - **VoIP / Gaming Jitter Analyzer**: RFC 3550-style interarrival jitter estimation, packet loss %, and G.107-inspired estimated VoIP MOS score (1.0–4.5).
-- **Autonomous Real-Time Self-Healing Guardian**: Low-overhead background daemon that detects DNS stalls, ARP drops, or DHCP expirations and auto-heals connection in real time.
+- **Autonomous Real-Time Self-Healing Guardian**: Low-overhead background daemon that detects DNS stalls, suspected local gateway/ARP communication issues, and DHCP assignment failures or invalid leases (APIPA), executing targeted auto-remediation in real time.
 - **100-Point Health Score**: Weighted scoring system grading overall connection health from *Poor* to *Excellent*.
 - **Root-Cause Diagnosis Engine**: Rule-based detection pinpointing specific issues (APIPA 169.254.x.x, ISP outages, packet loss spikes) with step-by-step remediation advice.
 - **Quick Network Repair Wizard**: 1-click Windows DNS Cache Flush (`ipconfig /flushdns`), registration, and DHCP renewal.
@@ -51,7 +51,7 @@ Troubleshooting network issues on end-user machines often leads to guesswork: gu
 | **Visual Traceroute & DNS Benchmark** | ✅ Full | ✅ Full | ✅ Full | Uses native `tracert` (Win) or `traceroute` (Unix) |
 | **VoIP / Gaming Jitter & MOS Analysis** | ✅ Full | ✅ Full | ✅ Full | RFC 3550-style active jitter estimation & G.107 model |
 | **LAN Subnet Discovery & HTML Report** | ✅ Full | ✅ Full | ✅ Full | Cross-platform ARP & reverse-DNS resolution |
-| **Desktop GUI** (`run_gui.bat` / Tkinter) | ✅ Full | ✅ Full | ✅ Full | Native Tkinter graphical interface |
+| **Desktop GUI** (Tkinter / `python run.py --gui`) | ✅ Full | ✅ Full | ✅ Full | Tkinter GUI is fully cross-platform; 1-click `.bat` launcher is Windows-only |
 | **Wi-Fi Signal & Channel Inspector** | ✅ Full | ⚠️ Fallback | ⚠️ Fallback | Native `netsh wlan` on Windows; falls back to Ethernet link on Unix |
 | **Auto-Heal Guardian & Quick Repair Wizard** | ✅ Full | ℹ️ Diagnostic | ℹ️ Diagnostic | Automatic remediation uses `ipconfig`/`netsh`/`arp`; flags manual repair on Unix |
 

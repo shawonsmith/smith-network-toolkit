@@ -566,12 +566,12 @@ class NetworkToolkitGUI:
         txt.config(state="disabled")
 
     def _run_tests(self):
-        self._set_status("Running automated pytest test suite (51 tests)...")
+        self._set_status("Running automated pytest test suite...")
         def worker():
             res = subprocess.run([sys.executable, "-m", "pytest", "-v", "tests/"], capture_output=True, text=True, check=False)
             lines = [l for l in res.stdout.splitlines() if "passed" in l or "FAILED" in l or "collected" in l]
             summary = "\n".join(lines[-4:]) if lines else res.stdout[-300:]
-            self.root.after(0, lambda: messagebox.showinfo("Pytest Suite Results [15]", f"Automated Unit Tests Completed:\n\n{summary or 'All 51 tests passed!'}"))
+            self.root.after(0, lambda: messagebox.showinfo("Pytest Suite Results [15]", f"Automated Unit Tests Completed:\n\n{summary or 'All automated tests completed successfully!'}"))
             self.root.after(0, lambda: self._set_status("Unit tests finished."))
         threading.Thread(target=worker, daemon=True).start()
 
