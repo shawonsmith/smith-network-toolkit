@@ -8,10 +8,10 @@
   <a href="https://github.com/shawonsmith/smith-network-toolkit/actions/workflows/ci.yml"><img src="https://github.com/shawonsmith/smith-network-toolkit/actions/workflows/ci.yml/badge.svg" alt="CI & Automated Test Suite"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.8%2B-blue.svg" alt="Python Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT"></a>
-  <img src="https://img.shields.io/badge/tests-55%20passing-success.svg" alt="Build & Tests">
+  <img src="https://img.shields.io/badge/tests-57%20passing-success.svg" alt="Build & Tests">
 </p>
 
-A lightweight, modular, and cross-platform enterprise network troubleshooting toolkit engineered for IT support students, junior systems engineers, helpdesk technicians, and small office administrators. It systematically diagnoses connectivity issues, assigns an empirical 0–100 health score, diagnoses root causes (e.g., DHCP APIPA failure, DNS resolver failure, ISP/upstream outages, local router issues), features an autonomous real-time self-healing watchdog daemon, and delivers interactive terminal dashboards, modern HTML reports, and a Desktop GUI.
+A modular, lightweight network troubleshooting toolkit featuring a cross-platform diagnostic core and Windows-focused advanced repair and Wi-Fi inspection tools. Engineered for IT support students, junior systems engineers, helpdesk technicians, and small office administrators. It systematically diagnoses connectivity issues, assigns an empirical 0–100 health score, detects root causes (e.g., DHCP APIPA failure, DNS resolver freeze, ISP/upstream disruptions, local gateway latency), features an autonomous real-time self-healing watchdog daemon, and provides interactive terminal dashboards, modern HTML reports, and a Desktop GUI.
 
 ---
 
@@ -26,12 +26,12 @@ Troubleshooting network issues on end-user machines often leads to guesswork: gu
 - **Isolated DNS Performance**: Benchmarks domain resolution response times against major internet infrastructure independently of web browsing.
 - **DNS Speed Benchmark**: Compares Cloudflare (1.1.1.1), Google (8.8.8.8), Quad9 (9.9.9.9), and OpenDNS (208.67.222.222) side-by-side.
 - **Common Port & Firewall Scanner**: Tests critical service ports (HTTP 80, HTTPS 443, DNS 53, SSH 22, RDP 3389, SMTP 587, IMAP 993).
-- **Hop-by-Hop Visual Traceroute**: Identifies exactly which router hop along the internet path is dropping packets or adding delay.
+- **Hop-by-Hop Visual Traceroute**: Measures latency per router hop along the internet path (accounts for intermediate router ICMP rate-limiting).
 - **Live Ping & Packet Drop Monitor**: Real-time continuous monitor with micro-drop detection for calls and gaming.
 - **Internet Download Speed Test**: Direct CDN throughput measurement reporting real-world connection speed in Mbps.
 - **LAN Subnet Device Discovery**: Multi-threaded ARP/socket sweep listing all active IP addresses, physical MACs, and hostnames.
-- **Advanced Wi-Fi & RF Inspector**: Signal %, RSSI dBm, 2.4/5/6 GHz channels, 802.11ax/ac/n generation, Rx/Tx link rates, and security cipher.
-- **VoIP / Gaming Jitter Analyzer**: RFC 3550 interarrival jitter, packet loss %, and ITU-T G.107 E-model estimated VoIP MOS score (1.0-4.5).
+- **Advanced Wi-Fi Signal & Channel Inspector**: Signal %, estimated RSSI (dBm), 2.4/5/6 GHz channels, 802.11ax/ac/n generation, Rx/Tx link rates, and security cipher.
+- **VoIP / Gaming Jitter Analyzer**: RFC 3550-style interarrival jitter estimation, packet loss %, and G.107-inspired estimated VoIP MOS score (1.0–4.5).
 - **Autonomous Real-Time Self-Healing Guardian**: Low-overhead background daemon that detects DNS stalls, ARP drops, or DHCP expirations and auto-heals connection in real time.
 - **100-Point Health Score**: Weighted scoring system grading overall connection health from *Poor* to *Excellent*.
 - **Root-Cause Diagnosis Engine**: Rule-based detection pinpointing specific issues (APIPA 169.254.x.x, ISP outages, packet loss spikes) with step-by-step remediation advice.
@@ -42,6 +42,18 @@ Troubleshooting network issues on end-user machines often leads to guesswork: gu
 <p align="center">
   <img src="screenshots/gui_preview.png" alt="Desktop GUI Preview" width="800" style="border-radius: 10px; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
 </p>
+
+### 🌐 Platform Support Matrix
+
+| Component / Feature | Windows | Linux | macOS | Notes |
+| :--- | :---: | :---: | :---: | :--- |
+| **Core Diagnostics** (Ping, DNS, HTTP, Port Scan, Gateway) | ✅ Full | ✅ Full | ✅ Full | Cross-platform Python standard library & socket probes |
+| **Visual Traceroute & DNS Benchmark** | ✅ Full | ✅ Full | ✅ Full | Uses native `tracert` (Win) or `traceroute` (Unix) |
+| **VoIP / Gaming Jitter & MOS Analysis** | ✅ Full | ✅ Full | ✅ Full | RFC 3550-style active jitter estimation & G.107 model |
+| **LAN Subnet Discovery & HTML Report** | ✅ Full | ✅ Full | ✅ Full | Cross-platform ARP & reverse-DNS resolution |
+| **Desktop GUI** (`run_gui.bat` / Tkinter) | ✅ Full | ✅ Full | ✅ Full | Native Tkinter graphical interface |
+| **Wi-Fi Signal & Channel Inspector** | ✅ Full | ⚠️ Fallback | ⚠️ Fallback | Native `netsh wlan` on Windows; falls back to Ethernet link on Unix |
+| **Auto-Heal Guardian & Quick Repair Wizard** | ✅ Full | ℹ️ Diagnostic | ℹ️ Diagnostic | Automatic remediation uses `ipconfig`/`netsh`/`arp`; flags manual repair on Unix |
 
 ---
 
@@ -56,7 +68,7 @@ In IT helpdesk and support environments, junior technicians often execute disjoi
 ## Features
 
 - 🖱️ **One-Click Launchers**: Double-click `run.bat` for interactive terminal or `run_gui.bat` for the Desktop GUI window.
-- ⚡ **Zero-Delay Diagnostics**: Rapid scans complete in seconds using non-blocking socket checks and optimized ping counts.
+- ⚡ **Rapid, Low-Overhead Diagnostics**: Fast scans complete in seconds using non-blocking socket checks and optimized ping counts.
 - 🏎️ **Multi-Resolver DNS Benchmark**: Side-by-side speed ranking of Cloudflare, Google, Quad9, and OpenDNS.
 - 🔌 **Firewall & Port Scanner**: Validates connectivity for Web, RDP, SSH, DNS, and Mail ports.
 - 📈 **Real-Time Ping Watcher**: Continuous live ping monitoring detecting transient micro packet drops.
@@ -161,7 +173,7 @@ Enter your choice [0-19]:
 | **RULE-01-APIPA** | IP is `169.254.x.x` | **DHCP Assignment Failure** | Power cycle router/DHCP server, check cable/Wi-Fi connection, run `ipconfig /renew`. |
 | **RULE-02-DNS-FAIL** | IP reachable, DNS fails | **DNS Resolution Outage** | Change DNS to `1.1.1.1` or `8.8.8.8`, flush local DNS cache (`ipconfig /flushdns`). |
 | **RULE-03-GATEWAY-DOWN** | Gateway unreachable | **Local Network Unreachable** | Inspect physical link, restart router/AP, verify static IP subnet configuration. |
-| **RULE-04-ISP-OUTAGE** | Gateway up, External IP down | **ISP / Upstream Outage** | Check modem WAN indicator, reboot optical terminal (ONT)/modem, call ISP support. |
+| **RULE-04-ISP-OUTAGE** | Gateway up, External IP down | **Possible ISP / Upstream Issue** | Check modem WAN indicator, power cycle modem/ONT, check for captive portal login, call ISP support. |
 | **RULE-05-PACKET-LOSS** | Packet loss > 5% | **Unstable Connection** | Check for Wi-Fi interference, test wired Ethernet cable, check for bandwidth hogs. |
 | **RULE-06-LAN-LATENCY** | Gateway latency > 15 ms | **High LAN Delay** | Local Wi-Fi congestion or interference. Move closer to AP or switch to 5 GHz. |
 | **RULE-07-DNS-SLOW** | DNS avg latency > 200 ms | **Degraded DNS Speed** | Switch DNS resolver to Cloudflare (1.1.1.1) or Google (8.8.8.8). |
@@ -171,7 +183,7 @@ Enter your choice [0-19]:
 ## Health Score Rubric (100 Points Total)
 
 | Check Name | Points | Evaluation Criteria |
-| :--- | :---: | :--- |
+| :--- | :---: | :---: |
 | **Valid IP Configuration** | 15 | Valid routable IPv4 assigned (0 pts if APIPA or absent) |
 | **Gateway Detected** | 10 | Default gateway route present in routing table |
 | **Gateway Reachable** | 15 | 15 pts (<5 ms), 12 pts (5-15 ms), 8 pts (>15 ms), 0 pts (down) |
@@ -186,7 +198,7 @@ Enter your choice [0-19]:
 
 ## Testing
 
-Run all 41 automated unit tests:
+Run all 57 automated unit tests:
 ```bash
 pytest -v tests/
 ```

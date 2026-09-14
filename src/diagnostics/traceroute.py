@@ -1,4 +1,4 @@
-﻿"""Hop-by-hop visual traceroute module."""
+"""Hop-by-hop visual traceroute module."""
 
 import platform
 import re
@@ -8,7 +8,12 @@ from src.utils.logger import log_event
 
 
 def run_traceroute(target: str = "1.1.1.1", max_hops: int = 15, timeout_ms: int = 800) -> Dict[str, Any]:
-    """Execute fast traceroute to target and parse hop latency."""
+    """
+    Execute hop-by-hop traceroute to target and parse latency per hop.
+    Note: Timeouts ('* * *') or missing responses at intermediate router hops
+    frequently indicate router ICMP rate-limiting or firewall policy rather than
+    genuine packet loss, provided subsequent hops and the destination respond normally.
+    """
     system = platform.system()
     log_event(f"Executing traceroute to {target} (max {max_hops} hops)...")
 

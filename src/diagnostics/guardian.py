@@ -43,6 +43,7 @@ class NetworkGuardian:
         self.consecutive_gw_failures = 0
         self.consecutive_internet_failures = 0
         self.last_heal_time: float = 0.0
+        self.total_incidents_attempted = 0
         self.total_incidents_healed = 0
         self.incident_history: List[Dict[str, Any]] = []
 
@@ -107,24 +108,35 @@ class NetworkGuardian:
                 gw_ok = True
                 gw_lat = p.get("avg_ms")
             else:
-                tcp = tcp_ping(gw_ip, port=53, timeout_sec=0.8)
-                if tcp.get("success"):
-                    gw_ok = True
-                    gw_lat = tcp.get("latency_ms")
+                for gw_port in (80, 53, 443):
+                    tcp = tcp_ping(gw_ip, port=gw_port, timeout_sec=0.8)
+                    if tcp.get("success"):
+                        gw_ok = True
+                        gw_lat = tcp.get("latency_ms")
+                        break
 
         # Probe 2: DNS Resolution
         dns_ok = self._probe_dns("cloudflare.com")
         if not dns_ok:
             dns_ok = self._probe_dns("google.com")
 
-        # Probe 3: Core Internet IP (Bypasses DNS)
-        net_res = ping_host("1.1.1.1", count=1, timeout_sec=1.2)
-        internet_ok = net_res.get("success", False)
-        net_lat = net_res.get("avg_ms")
-        if not internet_ok:
-            tcp_net = tcp_ping("1.1.1.1", port=53, timeout_sec=1.0)
-            internet_ok = tcp_net.get("success", False)
-            net_lat = tcp_net.get("latency_ms")
+        # Probe 3: Core Internet IP (Bypasses DNS, checks multiple resilient anycast endpoints)
+        internet_ok = False
+        net_lat = None
+        for endpoint in ("1.1.1.1", "8.8.8.8"):
+            net_res = ping_host(endpoint, count=1, timeout_sec=1.0)
+            if net_res.get("success", False):
+                internet_ok = True
+                net_lat = net_res.get("avg_ms")
+                break
+            for port in (53, 443):
+                tcp_net = tcp_ping(endpoint, port=port, timeout_sec=0.8)
+                if tcp_net.get("success", False):
+                    internet_ok = True
+                    net_lat = tcp_net.get("latency_ms")
+                    break
+            if internet_ok:
+                break
 
         # Failure Counters
         if not dns_ok and internet_ok:
@@ -185,12 +197,25 @@ class NetworkGuardian:
         log_event("AUTO-HEAL TRIGGERED: DNS Resolution Freeze Detected! Flushing cache...", "warning")
         t_start = time.time()
 
-        if platform.system() == "Windows":
-            try:
-                subprocess.run("ipconfig /flushdns", shell=True, capture_output=True, text=True, check=False)
-                subprocess.run("ipconfig /registerdns", shell=True, capture_output=True, text=True, check=False)
-            except Exception as e:
-                log_event(f"Auto-heal error executing flushdns: {e}", "warning")
+        if platform.system() != "Windows":
+            incident = {
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "trigger": "DNS Resolution Freeze (Domain lookup failed 2x)",
+                "action": "SKIPPED (Automatic remediation requires Windows)",
+                "verified": False,
+                "duration_sec": round(time.time() - t_start, 2),
+                "message": "Automated DNS cache flush is supported on Windows hosts."
+            }
+            self.last_heal_time = time.time()
+            self.consecutive_dns_failures = 0
+            self._record_incident(incident)
+            return
+
+        try:
+            subprocess.run("ipconfig /flushdns", shell=True, capture_output=True, text=True, check=False)
+            subprocess.run("ipconfig /registerdns", shell=True, capture_output=True, text=True, check=False)
+        except Exception as e:
+            log_event(f"Auto-heal error executing flushdns: {e}", "warning")
 
         # Verify if DNS restored
         time.sleep(1.0)
@@ -215,14 +240,27 @@ class NetworkGuardian:
         log_event("AUTO-HEAL TRIGGERED: Local Gateway Unreachable. Resetting ARP cache...", "warning")
         t_start = time.time()
 
-        if platform.system() == "Windows":
+        if platform.system() != "Windows":
+            incident = {
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "trigger": "Local Gateway Unreachable (Stale ARP entry suspected)",
+                "action": "SKIPPED (Automatic remediation requires Windows)",
+                "verified": False,
+                "duration_sec": round(time.time() - t_start, 2),
+                "message": "Automated ARP flush is supported on Windows hosts."
+            }
+            self.last_heal_time = time.time()
+            self.consecutive_gw_failures = 0
+            self._record_incident(incident)
+            return
+
+        try:
+            subprocess.run("netsh interface ip delete arpcache", shell=True, capture_output=True, text=True, check=False)
+        except Exception:
             try:
-                subprocess.run("netsh interface ip delete arpcache", shell=True, capture_output=True, text=True, check=False)
+                subprocess.run("arp -d *", shell=True, capture_output=True, text=True, check=False)
             except Exception:
-                try:
-                    subprocess.run("arp -d *", shell=True, capture_output=True, text=True, check=False)
-                except Exception:
-                    pass
+                pass
 
         time.sleep(1.0)
         from src.diagnostics.adapter import detect_adapter_info
@@ -249,11 +287,23 @@ class NetworkGuardian:
         log_event("AUTO-HEAL TRIGGERED: APIPA 169.254.x.x detected. Renewing DHCP lease...", "warning")
         t_start = time.time()
 
-        if platform.system() == "Windows":
-            try:
-                subprocess.run("ipconfig /renew", shell=True, capture_output=True, text=True, check=False)
-            except Exception as e:
-                log_event(f"Auto-heal error renewing IP: {e}", "warning")
+        if platform.system() != "Windows":
+            incident = {
+                "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                "trigger": "APIPA 169.254.x.x (DHCP Lease Failed)",
+                "action": "SKIPPED (Automatic remediation requires Windows)",
+                "verified": False,
+                "duration_sec": round(time.time() - t_start, 2),
+                "message": "Automated DHCP renewal is supported on Windows hosts."
+            }
+            self.last_heal_time = time.time()
+            self._record_incident(incident)
+            return
+
+        try:
+            subprocess.run("ipconfig /renew", shell=True, capture_output=True, text=True, check=False)
+        except Exception as e:
+            log_event(f"Auto-heal error renewing IP: {e}", "warning")
 
         time.sleep(2.0)
         from src.diagnostics.adapter import detect_adapter_info
@@ -275,7 +325,9 @@ class NetworkGuardian:
 
     def _record_incident(self, incident: Dict[str, Any]) -> None:
         """Log incident, play sound notification, and notify callbacks."""
-        self.total_incidents_healed += 1
+        self.total_incidents_attempted += 1
+        if incident.get("verified", False):
+            self.total_incidents_healed += 1
         self.incident_history.append(incident)
         log_event(f"AUTO-HEAL COMPLETE: {incident['action']} -> Verified: {incident['verified']}", "info")
 

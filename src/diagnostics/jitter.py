@@ -1,4 +1,4 @@
-"""VoIP, Video Call (Zoom/Teams), and Gaming Stability / Jitter Analyzer (RFC 3550)."""
+"""VoIP, Video Call (Zoom/Teams), and Gaming Stability / Jitter Analyzer (RFC 3550-style estimation)."""
 
 import math
 import statistics
@@ -11,8 +11,10 @@ from src.utils.platform_utils import ping_host, tcp_ping
 
 def calculate_rfc3550_jitter(latencies: List[float]) -> float:
     """
-    Calculate RFC 3550 interarrival jitter.
+    Calculate RFC 3550-style interarrival jitter estimation.
     Formula: J(i) = J(i-1) + (|D(i-1, i)| - J(i-1)) / 16
+    Note: Computed over sequential active ICMP/TCP round-trip time samples rather than
+    in-band passive RTP packet headers.
     """
     if len(latencies) < 2:
         return 0.0
@@ -28,7 +30,8 @@ def calculate_rfc3550_jitter(latencies: List[float]) -> float:
 def estimate_mos_score(avg_latency: float, jitter: float, packet_loss_pct: float) -> float:
     """
     Estimate Mean Opinion Score (MOS) based on ITU-T G.107 E-model approximation.
-    Score ranges from 1.0 (Unusable) to 4.5 (Crystal Clear HD).
+    Estimates perceived conversational call quality based on synthetic delay and
+    packet drop impairments. Score ranges from 1.0 (Unusable) to 4.5 (Crystal Clear HD).
     """
     # Effective latency including buffer jitter compensation
     effective_latency = avg_latency + (jitter * 2.0)

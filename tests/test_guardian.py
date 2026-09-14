@@ -79,6 +79,46 @@ def test_guardian_record_incident_callback():
     with patch("sys.platform", "win32"):
         guardian._record_incident(fake_inc)
 
+    assert guardian.total_incidents_attempted == 1
     assert guardian.total_incidents_healed == 1
     assert len(received_incidents) == 1
     assert received_incidents[0]["trigger"] == "DNS Freeze"
+
+
+def test_guardian_incident_counting_unverified():
+    guardian = NetworkGuardian()
+    unverified_inc = {
+        "timestamp": "2026-09-14 10:00:00",
+        "trigger": "Router Unreachable",
+        "action": "Flushed local ARP cache table",
+        "verified": False,
+        "duration_sec": 1.0,
+        "message": "ARP refreshed but gateway still down"
+    }
+    guardian._record_incident(unverified_inc)
+    assert guardian.total_incidents_attempted == 1
+    assert guardian.total_incidents_healed == 0
+
+    verified_inc = {
+        "timestamp": "2026-09-14 10:01:00",
+        "trigger": "DNS Freeze",
+        "action": "ipconfig /flushdns",
+        "verified": True,
+        "duration_sec": 1.1,
+        "message": "DNS restored"
+    }
+    guardian._record_incident(verified_inc)
+    assert guardian.total_incidents_attempted == 2
+    assert guardian.total_incidents_healed == 1
+
+
+def test_guardian_non_windows_skip():
+    guardian = NetworkGuardian()
+    with patch("platform.system", return_value="Linux"):
+        guardian._execute_heal_dns({})
+        assert len(guardian.incident_history) == 1
+        assert "SKIPPED" in guardian.incident_history[0]["action"]
+        assert guardian.incident_history[0]["verified"] is False
+        assert guardian.total_incidents_attempted == 1
+        assert guardian.total_incidents_healed == 0
+

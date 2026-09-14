@@ -1,4 +1,4 @@
-﻿"""Automatic root-cause diagnosis engine and actionable recommendation generator."""
+"""Automatic root-cause diagnosis engine and actionable recommendation generator."""
 
 from typing import List, Dict, Any
 from src.models.result import (
@@ -104,19 +104,21 @@ def run_diagnosis(
             severity="critical"
         ))
 
-    # Rule 4: ISP / Upstream Outage (Gateway reachable, but external IP unreachable)
+    # Rule 4: Possible ISP / Upstream Connectivity Issue (Gateway reachable, but external IP unreachable)
     if gateway_reachable and not external_ip_ok and (internet_res is not None and internet_res.status == "FAIL"):
         issues.append(DiagnosisItem(
             rule_id="RULE-04-ISP-OUTAGE",
-            title="ISP or Upstream Connection Outage",
+            title="Possible ISP or Upstream Connectivity Issue",
             description=(
-                "Local network communication with the router is working normally, but data cannot "
-                "reach the external Internet. The issue is likely upstream at the ISP or modem level."
+                "Local network communication with your default gateway is working, but external "
+                "Internet IP probes failed. This typically indicates an upstream ISP outage, modem lockup, "
+                "captive portal login requirement, or upstream WAN routing failure."
             ),
             recommendations=[
+                "Check whether you need to log in to a captive portal (hotel, public, or campus Wi-Fi).",
                 "Inspect the WAN / Internet LED indicator on your broadband modem/router.",
-                "Power cycle your broadband modem / Optical Network Terminal (ONT).",
-                "Contact your Internet Service Provider (ISP) to report an outage or check service status."
+                "Power cycle your broadband modem / Optical Network Terminal (ONT) and router.",
+                "Contact your Internet Service Provider (ISP) to check for upstream service disruptions."
             ],
             severity="critical"
         ))

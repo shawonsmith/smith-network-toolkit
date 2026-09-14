@@ -11,7 +11,9 @@ from src.diagnostics.wifi_analyzer import (
 
 
 def test_get_wifi_generation():
-    assert "Wi-Fi 6" in get_wifi_generation("802.11ax")
+    assert get_wifi_generation("802.11ax") == "Wi-Fi 6 (802.11ax)"
+    assert get_wifi_generation("802.11ax", band="5.0 GHz") == "Wi-Fi 6 (802.11ax)"
+    assert get_wifi_generation("802.11ax", band="6.0 GHz") == "Wi-Fi 6E (802.11ax 6GHz)"
     assert "Wi-Fi 5" in get_wifi_generation("802.11ac")
     assert "Wi-Fi 4" in get_wifi_generation("802.11n")
     assert "Wi-Fi 7" in get_wifi_generation("802.11be")

@@ -9,13 +9,15 @@ import psutil
 from src.utils.logger import log_event
 
 
-def get_wifi_generation(radio_type: str) -> str:
+def get_wifi_generation(radio_type: str, band: Optional[str] = None) -> str:
     """Map 802.11 radio protocol to standard consumer Wi-Fi generation name."""
-    radio_lower = radio_type.lower()
+    radio_lower = (radio_type or "").lower()
     if "802.11be" in radio_lower:
         return "Wi-Fi 7 (802.11be)"
     elif "802.11ax" in radio_lower:
-        return "Wi-Fi 6 / 6E (802.11ax)"
+        if band == "6.0 GHz":
+            return "Wi-Fi 6E (802.11ax 6GHz)"
+        return "Wi-Fi 6 (802.11ax)"
     elif "802.11ac" in radio_lower:
         return "Wi-Fi 5 (802.11ac)"
     elif "802.11n" in radio_lower:
@@ -53,7 +55,8 @@ def estimate_rssi_dbm(signal_pct: Optional[int]) -> Optional[int]:
 
 def analyze_wifi_status() -> Dict[str, Any]:
     """
-    Perform deep inspection of wireless adapter, connection health, and RF environment.
+    Perform inspection of wireless adapter, connection health, and Wi-Fi signal environment.
+    Estimates RSSI (dBm) from Windows WLAN signal quality percentages.
     Falls back gracefully to Ethernet/Wired status if Wi-Fi is inactive or not present.
     """
     system = platform.system()
@@ -119,7 +122,6 @@ def analyze_wifi_status() -> Dict[str, Any]:
                     res["bssid"] = v
                 elif "radio type" in k:
                     res["radio_type"] = v
-                    res["wifi_generation"] = get_wifi_generation(v)
                 elif "authentication" in k:
                     res["auth"] = v
                 elif "cipher" in k:
@@ -143,6 +145,9 @@ def analyze_wifi_status() -> Dict[str, Any]:
                     if m:
                         res["signal_pct"] = int(m.group(1))
                         res["rssi_dbm"] = estimate_rssi_dbm(res["signal_pct"])
+
+        if res.get("radio_type"):
+            res["wifi_generation"] = get_wifi_generation(res["radio_type"], res.get("band"))
 
     except Exception as e:
         log_event(f"Error querying netsh wlan interfaces: {e}", "warning")
